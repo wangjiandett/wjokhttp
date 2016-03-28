@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="GlideImageView">
+        <attr name="placeholderImage" format="reference"/>
+        <attr name="failureImage" format="reference"/>
+        <attr name="roundAsCircle" format="boolean"/>
+        <attr name="roundedCornerRadius" format="dimension"/>
+    </declare-styleable>
+</resources>

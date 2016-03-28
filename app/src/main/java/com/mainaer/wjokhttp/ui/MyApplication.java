@@ -1,0 +1,26 @@
+/*
+ * Copyright (C) 20015 MaiNaEr All rights reserved
+ */
+package com.mainaer.wjokhttp.ui;
+
+import android.app.Application;
+
+import com.mainaer.wjokhttp.model.BaseResponse;
+import com.mainaer.wjoklib.okhttp.OKHttpConfig;
+import com.mainaer.wjoklib.okhttp.OKHttpManager;
+
+/**
+ * 类/接口描述
+ *
+ * @author wangjian
+ * @date 2016/3/28.
+ */
+public class MyApplication extends Application {
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        OKHttpConfig OKHttpConfig = new OKHttpConfig.Builder().setBaseResponseClass(BaseResponse.class)
+            .setConnectTimeout(10).setReadTimeout(10).setWriteTimeout(10).build();
+        OKHttpManager.init(this, OKHttpConfig);
+    }
+}
