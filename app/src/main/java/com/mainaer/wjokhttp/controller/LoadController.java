@@ -4,10 +4,12 @@
 package com.mainaer.wjokhttp.controller;
 
 
+import com.mainaer.wjokhttp.comment.MyAppController;
 import com.mainaer.wjokhttp.model.LoadRequest;
 import com.mainaer.wjokhttp.model.LoadResponse;
 import com.mainaer.wjokhttp.url.URLConst;
 import com.mainaer.wjoklib.okhttp.IUrl;
+import com.mainaer.wjoklib.okhttp.OkException;
 
 
 /**
@@ -40,7 +42,7 @@ public class LoadController extends MyAppController<LoadController.LoadListener>
         }
 
         @Override
-        public void onError(String e) {
+        public void onError(OkException e) {
             mListener.onLoadFail(e);
         }
     }
@@ -49,7 +51,7 @@ public class LoadController extends MyAppController<LoadController.LoadListener>
 
         void onLoadSuccess(LoadResponse loadResponse);
 
-        void onLoadFail(String e);
+        void onLoadFail(OkException e);
     }
 
 }

@@ -9,6 +9,8 @@ import com.mainaer.wjokhttp.model.BaseResponse;
 import com.mainaer.wjoklib.okhttp.OKHttpConfig;
 import com.mainaer.wjoklib.okhttp.OKHttpManager;
 
+import okhttp3.Cache;
+
 /**
  * 类/接口描述
  *
@@ -19,8 +21,11 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        Cache cache = new Cache(getCacheDir(), 10 * 1024 * 1024);
+
         OKHttpConfig OKHttpConfig = new OKHttpConfig.Builder().setBaseResponseClass(BaseResponse.class)
-            .setConnectTimeout(10).setReadTimeout(10).setWriteTimeout(10).build();
+            .setConnectTimeout(10).setReadTimeout(10).setWriteTimeout(10).setCache(cache).build();
         OKHttpManager.init(this, OKHttpConfig);
     }
 }

@@ -1,4 +1,19 @@
 <resources>
     <string name="app_name">WjOkhttp</string>
     <string name="action_settings">Settings</string>
+
+
+    <!--error -->
+    <string name="error_type_auth">身份验证失败</string>
+    <string name="error_type_no_network">网络未连接</string>
+    <string name="error_type_network">网络错误</string>
+    <string name="error_type_timeout">连接超时</string>
+    <string name="error_type_parse">数据解析错误</string>
+    <string name="error_type_server">服务暂时不可用, 请稍后再试</string>
+    <string name="error_type_logic">服务暂时不可用, 请稍后再试</string>
+    <string name="error_type_unknown">操作失败</string>
+    <string name="error_loading">网络不给力</string>
+    <string name="error_loading_retry">请点击重新加载</string>
+    <string name="error_loading_with_retry">加载失败, 请点击重试</string>
+
 </resources>

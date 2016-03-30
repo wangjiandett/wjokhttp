@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import okhttp3.Response;
 
 /**
@@ -67,10 +68,13 @@ public final class OKHttpManager {
         mBuilder.connectTimeout(connectTimeout, TimeUnit.SECONDS);
         mBuilder.readTimeout(readTimeout, TimeUnit.SECONDS);
         mBuilder.writeTimeout(writeTimeout, TimeUnit.SECONDS);
+
+        //mBuilder.addInterceptor(new LoggingInterceptor());
+        mBuilder.addNetworkInterceptor(INTERCEPTOR);
+
         if (mConfig.getCache() != null) {
             mBuilder.cache(mConfig.getCache());
         }
-        mBuilder.addInterceptor(INTERCEPTOR);
 
         mOkHttpClient = mBuilder.build();
     }
@@ -127,5 +131,24 @@ public final class OKHttpManager {
                 "max-age=%d", 10)).build();
         }
     };
+
+    class LoggingInterceptor implements Interceptor {
+        @Override
+        public Response intercept(Interceptor.Chain chain) throws IOException {
+            Request request = chain.request();
+
+            long t1 = System.nanoTime();
+            android.util.Log.e("eeee", String.format("Sending request %s on %s%n%s", request.url(), chain.connection(),
+                request.headers()));
+
+            Response response = chain.proceed(request);
+
+//            long t2 = System.nanoTime();
+//            android.util.Log.e("eeee", String.format("Received response for %s in %.1fms%n%s", response.request().url(),
+//                (t2 - t1) / 1e6d, response.headers()));
+
+            return response;
+        }
+    }
 
 }

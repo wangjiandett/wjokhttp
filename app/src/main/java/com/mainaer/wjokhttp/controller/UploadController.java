@@ -6,6 +6,7 @@ package com.mainaer.wjokhttp.controller;
 import com.mainaer.wjokhttp.model.UploadResponse;
 import com.mainaer.wjoklib.okhttp.IUrl;
 import com.mainaer.wjoklib.okhttp.OKUploadController;
+import com.mainaer.wjoklib.okhttp.OkException;
 
 import java.io.File;
 import java.util.HashMap;
@@ -41,7 +42,7 @@ public class UploadController extends OKUploadController<UploadController.Upload
         }
 
         @Override
-        protected void onError(String error) {
+        protected void onError(OkException error) {
             mListener.upLoadFail(error);
         }
 
@@ -58,6 +59,6 @@ public class UploadController extends OKUploadController<UploadController.Upload
     public interface UploadListener {
         void upLoadSuccess(UploadResponse uploadResponse);
 
-        void upLoadFail(String msg);
+        void upLoadFail(OkException msg);
     }
 }

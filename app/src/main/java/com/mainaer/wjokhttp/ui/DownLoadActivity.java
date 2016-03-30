@@ -13,7 +13,9 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.mainaer.wjokhttp.R;
+import com.mainaer.wjokhttp.comment.OkUtils;
 import com.mainaer.wjokhttp.controller.DownController;
+import com.mainaer.wjoklib.okhttp.OkException;
 
 import java.io.File;
 
@@ -57,14 +59,17 @@ public class DownLoadActivity extends AppCompatActivity implements View.OnClickL
     @Override
     public void onDownLoadProgress(float progress, long total) {
         int pro = (int) (progress * 100);
-        android.util.Log.e("eee", pro + "");
-
         mProgressBar.setProgress(pro);
     }
 
     @Override
     public void onDownLoadSuccess(File file) {
         Toast.makeText(this, file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onDownLoadFailure(OkException error) {
+        OkUtils.toastError(this,error);
     }
 
     public static void go(Context context) {

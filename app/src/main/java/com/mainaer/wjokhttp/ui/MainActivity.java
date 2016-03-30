@@ -7,14 +7,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.mainaer.wjokhttp.R;
+import com.mainaer.wjokhttp.comment.OkUtils;
 import com.mainaer.wjokhttp.controller.LoadController;
 import com.mainaer.wjokhttp.controller.UploadController;
 import com.mainaer.wjokhttp.model.LoadRequest;
 import com.mainaer.wjokhttp.model.LoadResponse;
 import com.mainaer.wjokhttp.model.UploadResponse;
+import com.mainaer.wjoklib.okhttp.OkException;
 
 import java.io.File;
 
@@ -74,8 +75,8 @@ public class MainActivity extends AppCompatActivity implements LoadController.Lo
     }
 
     @Override
-    public void onLoadFail(String e) {
-        Toast.makeText(this, e, Toast.LENGTH_SHORT).show();
+    public void onLoadFail(OkException e) {
+        OkUtils.toastError(this, e);
     }
 
     @Override
@@ -103,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements LoadController.Lo
     }
 
     @Override
-    public void upLoadFail(String msg) {
-
+    public void upLoadFail(OkException e) {
+        OkUtils.toastError(this, e);
     }
 }

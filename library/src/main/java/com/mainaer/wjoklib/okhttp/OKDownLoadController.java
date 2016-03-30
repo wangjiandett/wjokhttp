@@ -17,13 +17,16 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 /**
- * 类/接口描述
+ * 文件下载父类，需要下载请继承后实现
  *
  * @author wangjian
  * @date 2016/3/28.
  */
 public abstract class OKDownLoadController<Listener> extends OKHttpController<Listener> {
 
+    private final static int DOWN_PROGRESS = 1;
+    private final static int DOWN_SUCCESS = 2;
+    private final static int DOWN_FAILURE = 3;
 
     public OKDownLoadController() {
         super();
@@ -35,10 +38,6 @@ public abstract class OKDownLoadController<Listener> extends OKHttpController<Li
     }
 
     protected abstract class BaseDownLoadTask<Input> extends LoadTask<Input, File> {
-
-        private int DOWN_PROGRESS = 1;
-        private int DOWN_SUCCESS = 2;
-        private int DOWN_FAILURE = 3;
 
         private ResponseBody mBody;
 
@@ -58,7 +57,7 @@ public abstract class OKDownLoadController<Listener> extends OKHttpController<Li
                         onSuccess(file);
                     }
                     else if (msg.what == DOWN_FAILURE) {
-                        onError(msg.obj.toString());
+                        onError((OkException) msg.obj);
                     }
                 }
             }
@@ -79,7 +78,13 @@ public abstract class OKDownLoadController<Listener> extends OKHttpController<Li
                 String fileDir = getFileDir();
                 String fileName = getFileName();
                 try {
-                    if (!TextUtils.isEmpty(fileDir) && !TextUtils.isEmpty(fileName)) {
+                    if (!TextUtils.isEmpty(fileDir)) {
+                        // 获取文件名
+                        String url = getUrl().getUrl().trim();
+                        if (!TextUtils.isEmpty(url) && TextUtils.isEmpty(fileName)) {
+                            fileName = url.substring(url.lastIndexOf("/"));
+                        }
+
                         mFile = saveFile(body.byteStream(), body.contentLength(), fileDir, fileName);
                         if (mFile != null) {
                             postMessage(DOWN_SUCCESS, mFile);
@@ -89,7 +94,7 @@ public abstract class OKDownLoadController<Listener> extends OKHttpController<Li
                         postMessage(DOWN_FAILURE, "the methord getFileDir() or getFileName() is null");
                     }
                 } catch (Exception e) {
-                    postMessage(DOWN_FAILURE, e.getMessage());
+                    postMessage(DOWN_FAILURE, new OkException(e));
                 }
             }
         }
@@ -101,7 +106,14 @@ public abstract class OKDownLoadController<Listener> extends OKHttpController<Li
 
         protected abstract String getFileDir();
 
-        protected abstract String getFileName();
+        /**
+         * 自定义文件名
+         *
+         * @return
+         */
+        protected String getFileName() {
+            return null;
+        }
 
         private File saveFile(InputStream inputStream, final long contentLength, String destFileDir,
                               String destFileName) throws IOException {

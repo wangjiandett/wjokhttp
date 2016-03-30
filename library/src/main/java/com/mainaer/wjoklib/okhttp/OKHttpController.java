@@ -53,10 +53,6 @@ public abstract class OKHttpController<Listener> {
         this.mListener = l;
     }
 
-    private void log(String msg) {
-        android.util.Log.e(OKHttpController.class.getSimpleName(), msg);
-    }
-
     protected abstract class LoadTask<Input, Output> implements Callback {
 
         private OkHttpClient mClient = OKHttpManager.getOkHttpClient();
@@ -70,7 +66,7 @@ public abstract class OKHttpController<Listener> {
 
         protected abstract void onSuccess(Output output);
 
-        protected abstract void onError(String error);
+        protected abstract void onError(OkException error);
 
         /**
          * Intercept 'data' json parser
@@ -92,7 +88,7 @@ public abstract class OKHttpController<Listener> {
             this.mDataClazz = clazz;
 
             IUrl url = getUrl();
-            log("request url = " + url.getUrl());
+            LoggerUtil.i("request url = " + url.getUrl());
             // 获取请求方法
             int method = url.getMethod();
             Request.Builder builder = null;
@@ -127,7 +123,7 @@ public abstract class OKHttpController<Listener> {
 
             // 构建tag
             String tag = getClass().getName();
-            // 封装请求.cacheControl(new CacheControl.Builder().maxAge(5, TimeUnit.SECONDS).build())
+            // 封装请求.cacheControl(new CacheControl.Builder().maxAge(10, TimeUnit.SECONDS) .build())
             Request request = builder.tag(tag).build();
             // 执行请求
             mCall = mClient.newCall(request);
@@ -139,13 +135,13 @@ public abstract class OKHttpController<Listener> {
             String body = getBody(input);
             url.setQuery(body);
             builder.url(url.getUrl());
-            log("get request url = " + url.getUrl());
+            LoggerUtil.i("get request url = " + url.getUrl());
             return builder;
         }
 
         @Override
         public final void onFailure(Call call, IOException e) {
-            sendMessage(e.getMessage(), ERROR_CODE);
+            sendMessage(new OkException(e), ERROR_CODE);
         }
 
         @Override
@@ -162,7 +158,7 @@ public abstract class OKHttpController<Listener> {
             Output out = null;
             String body = null;
             try {
-                body = response.body().string().trim();
+                body = response.body().string();
                 // 解析成OKBaseResponse
                 OKBaseResponse baseResponse = mGson.fromJson(body, getBaseResponseClass());
                 if (!onInterceptor(baseResponse)) {
@@ -178,7 +174,7 @@ public abstract class OKHttpController<Listener> {
                     // 解析成BaseResponse中的data
                     String data = baseResponse.getData();
                     if (!TextUtils.isEmpty(data)) {
-                        log("response = " + body);
+                        LoggerUtil.i("response = " + body);
                         if (mDataItemClass != null && mDataClazz == null) {
                             out = mGson.fromJson(data, type(List.class, mDataItemClass));
                             if (out == null) {
@@ -192,13 +188,13 @@ public abstract class OKHttpController<Listener> {
                     }
                 }
             } catch (IOException e) {
-                sendMessage(e.getMessage(), ERROR_CODE);
+                sendMessage(new OkException(e), ERROR_CODE);
                 return;
             } catch (JsonSyntaxException e) {
-                sendMessage(e.getMessage(), ERROR_CODE);
+                sendMessage(new OkException(e), ERROR_CODE);
                 return;
             } catch (Exception e) {
-                sendMessage(e.getMessage(), ERROR_CODE);
+                sendMessage(new OkException(e), ERROR_CODE);
                 return;
             }
         }
@@ -206,7 +202,7 @@ public abstract class OKHttpController<Listener> {
         /**
          * 数据加载完成或失败
          *
-         * @param obj 加载到的数据或失败信息
+         * @param obj  加载到的数据或失败信息
          * @param what
          */
         protected void sendMessage(Object obj, int what) {
@@ -224,7 +220,7 @@ public abstract class OKHttpController<Listener> {
                     onSuccess((Output) msg.obj);
                 }
                 else if (msg.what == ERROR_CODE) {
-                    onError(msg.obj.toString());
+                    onError((OkException) msg.obj);
                 }
             }
         };
@@ -255,7 +251,7 @@ public abstract class OKHttpController<Listener> {
                     buffer.append(key).append("=").append(map.get(key)).append(" ,");
                     formBuilder.add(key, OkStringUtils.getRequestParamValue(map.get(key), getParamsEncoding()));
                 }
-                log("request body: " + buffer.deleteCharAt(buffer.toString().length() - 1));
+                LoggerUtil.i("request body: " + buffer.deleteCharAt(buffer.toString().length() - 1));
             }
             return formBuilder.build();
         }
@@ -289,7 +285,7 @@ public abstract class OKHttpController<Listener> {
             else {
                 body = OkStringUtils.getRequestParam(input, getParamsEncoding());
             }
-            log("request body: " + body);
+            LoggerUtil.i("request body: " + body);
             return body;
         }
     }

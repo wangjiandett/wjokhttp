@@ -9,6 +9,7 @@ import com.mainaer.wjokhttp.model.DownRequest;
 import com.mainaer.wjokhttp.url.URLConst;
 import com.mainaer.wjoklib.okhttp.IUrl;
 import com.mainaer.wjoklib.okhttp.OKDownLoadController;
+import com.mainaer.wjoklib.okhttp.OkException;
 
 import java.io.File;
 
@@ -24,12 +25,12 @@ public class DownController extends OKDownLoadController<DownController.DownLoad
         super(l);
     }
 
-    public void downLoad(){
+    public void downLoad() {
         DownTask downTask = new DownTask();
         downTask.load(new DownRequest(), File.class);
     }
 
-    private class DownTask extends BaseDownLoadTask<DownRequest>{
+    private class DownTask extends BaseDownLoadTask<DownRequest> {
         @Override
         protected void inProgress(float progress, long total) {
             mListener.onDownLoadProgress(progress, total);
@@ -40,14 +41,14 @@ public class DownController extends OKDownLoadController<DownController.DownLoad
             return Environment.getExternalStorageDirectory().getAbsolutePath();
         }
 
-        @Override
-        protected String getFileName() {
-            return System.currentTimeMillis()+".apk";
-        }
+        /*  @Override // 自定义下载文件名
+            protected String getFileName() {
+                return System.currentTimeMillis() + ".apk";
+        }*/
 
         @Override
         protected IUrl getUrl() {
-            return URLConst.getListUrl();
+            return URLConst.getDownLoadUrl();
         }
 
         @Override
@@ -56,14 +57,17 @@ public class DownController extends OKDownLoadController<DownController.DownLoad
         }
 
         @Override
-        protected void onError(String error) {
-
+        protected void onError(OkException error) {
+            mListener.onDownLoadFailure(error);
         }
     }
 
-    public interface DownLoadListener{
+    public interface DownLoadListener {
         void onDownLoadProgress(float progress, long total);
+
         void onDownLoadSuccess(File file);
+
+        void onDownLoadFailure(OkException error);
     }
 
 
