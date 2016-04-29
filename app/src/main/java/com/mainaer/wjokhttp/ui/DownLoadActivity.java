@@ -15,7 +15,7 @@ import android.widget.Toast;
 import com.mainaer.wjokhttp.R;
 import com.mainaer.wjokhttp.comment.OkUtils;
 import com.mainaer.wjokhttp.controller.DownController;
-import com.mainaer.wjoklib.okhttp.OkException;
+import com.mainaer.wjoklib.okhttp.exception.OkException;
 
 import java.io.File;
 

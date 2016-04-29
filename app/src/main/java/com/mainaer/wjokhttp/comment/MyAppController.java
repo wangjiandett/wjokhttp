@@ -6,7 +6,7 @@ package com.mainaer.wjokhttp.comment;
 
 import com.mainaer.wjokhttp.model.BaseResponse;
 import com.mainaer.wjoklib.okhttp.OKBaseResponse;
-import com.mainaer.wjoklib.okhttp.OKHttpController;
+import com.mainaer.wjoklib.okhttp.controller.OKHttpController;
 
 /**
  * 类/接口描述

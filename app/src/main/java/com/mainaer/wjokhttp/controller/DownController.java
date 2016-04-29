@@ -8,8 +8,8 @@ import android.os.Environment;
 import com.mainaer.wjokhttp.model.DownRequest;
 import com.mainaer.wjokhttp.url.URLConst;
 import com.mainaer.wjoklib.okhttp.IUrl;
-import com.mainaer.wjoklib.okhttp.OKDownLoadController;
-import com.mainaer.wjoklib.okhttp.OkException;
+import com.mainaer.wjoklib.okhttp.controller.OKDownLoadController;
+import com.mainaer.wjoklib.okhttp.exception.OkException;
 
 import java.io.File;
 
@@ -48,7 +48,7 @@ public class DownController extends OKDownLoadController<DownController.DownLoad
 
         @Override
         protected IUrl getUrl() {
-            return URLConst.getDownLoadUrl();
+            return new URLConst.AbsoluteUrl(URLConst.DOWNLOADURL).get();
         }
 
         @Override

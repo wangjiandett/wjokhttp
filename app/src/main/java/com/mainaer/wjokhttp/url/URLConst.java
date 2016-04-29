@@ -19,7 +19,7 @@ import android.text.TextUtils;
 
 import com.mainaer.wjoklib.okhttp.IUrl;
 
-import com.mainaer.wjoklib.okhttp.OKHttpController.Method;
+import com.mainaer.wjoklib.okhttp.controller.OKHttpController.Method;
 
 
 /**
@@ -32,24 +32,15 @@ public final class URLConst {
     private URLConst() {
     }
 
-    public static String BASE = "";
-
     // get使用url
-    public static final String BASE1 = "http://app.mainaer.com/api.php/2.2.0/";
+    public static final String BASE = "http://app.mainaer.com/api.php/2.2.0/";
     // 下载使用url
-    public static String BASE2 = "http://msoftdl.360.cn/mobilesafe/shouji360/360safesis/360StrongBox_1.0.9.1008.apk";
+    public static String DOWNLOADURL = "http://msoftdl.360.cn/mobilesafe/shouji360/360safesis/360StrongBox_1.0.9.1008"
+        + ".apk";
 
 
-    public static Url getListUrl() {
-        BASE = BASE1;
+    public interface Product{
         Url PRODUCTLIST = new Url("productlist").get();
-        return PRODUCTLIST;
-    }
-
-    public static Url getDownLoadUrl() {
-        BASE = BASE2;
-        Url DOWNLOAD = new Url("").get();
-        return DOWNLOAD;
     }
 
     public static class Url implements IUrl {

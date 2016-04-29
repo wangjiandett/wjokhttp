@@ -24,6 +24,7 @@ public class MyApplication extends Application {
 
         Cache cache = new Cache(getCacheDir(), 10 * 1024 * 1024);
 
+        // 程序初始化时，初始okhttp配置
         OKHttpConfig OKHttpConfig = new OKHttpConfig.Builder().setBaseResponseClass(BaseResponse.class)
             .setConnectTimeout(10).setReadTimeout(10).setWriteTimeout(10).setCache(cache).build();
         OKHttpManager.init(this, OKHttpConfig);

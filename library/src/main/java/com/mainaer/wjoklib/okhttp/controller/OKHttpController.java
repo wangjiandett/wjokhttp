@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 20015 MaiNaEr All rights reserved
  */
-package com.mainaer.wjoklib.okhttp;
+package com.mainaer.wjoklib.okhttp.controller;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -10,6 +10,12 @@ import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.mainaer.wjoklib.okhttp.IUrl;
+import com.mainaer.wjoklib.okhttp.OKBaseResponse;
+import com.mainaer.wjoklib.okhttp.OKHttpManager;
+import com.mainaer.wjoklib.okhttp.exception.OkException;
+import com.mainaer.wjoklib.okhttp.utils.LoggerUtil;
+import com.mainaer.wjoklib.okhttp.utils.OkStringUtils;
 
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
@@ -62,10 +68,24 @@ public abstract class OKHttpController<Listener> {
         private Gson mGson = new Gson();
         protected Input input;
 
+        /**
+         * 获取url
+         *
+         * @return
+         */
         protected abstract IUrl getUrl();
 
+        /**
+         * 加载成功回调
+         *
+         * @param output
+         */
         protected abstract void onSuccess(Output output);
 
+        /**
+         *
+         * @param error
+         */
         protected abstract void onError(OkException error);
 
         /**
@@ -78,11 +98,23 @@ public abstract class OKHttpController<Listener> {
             return false;
         }
 
+        /**
+         * 加载数据解析成list
+         *
+         * @param input 请求参数
+         * @param itemClass 相应的item类型
+         */
         public void load2List(Input input, Class<?> itemClass) {
             this.mDataItemClass = itemClass;
             load(input, null);
         }
 
+        /**
+         * 加载数据
+         *
+         * @param input 输入数据
+         * @param clazz 响应类型
+         */
         public void load(Input input, Class<Output> clazz) {
             this.input = input;
             this.mDataClazz = clazz;
@@ -154,6 +186,11 @@ public abstract class OKHttpController<Listener> {
             }
         }
 
+        /**
+         * 解析请求成功的数据
+         *
+         * @param response
+         */
         protected void convertData(Response response) {
             Output out = null;
             String body = null;
@@ -290,6 +327,9 @@ public abstract class OKHttpController<Listener> {
         }
     }
 
+    /**
+     * 在不需要的时候，取消请求
+     */
     public void onDestroy() {
         if (mCall != null && !mCall.isExecuted()) {
             try {

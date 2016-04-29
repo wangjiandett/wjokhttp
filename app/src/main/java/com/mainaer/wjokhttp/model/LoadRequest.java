@@ -3,13 +3,15 @@
  */
 package com.mainaer.wjokhttp.model;
 
+import java.io.Serializable;
+
 /**
  * 类/接口描述
  *
  * @author wangjian
  * @date 2016/3/23.
  */
-public class LoadRequest{
+public class LoadRequest implements Serializable{
     public String client = "Android";
     public int city_id = 2;
     public int page = 1;

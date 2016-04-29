@@ -1,4 +1,4 @@
-package com.mainaer.wjoklib.okhttp;
+package com.mainaer.wjoklib.okhttp.utils;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;

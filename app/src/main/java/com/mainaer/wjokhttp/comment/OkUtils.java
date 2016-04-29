@@ -20,7 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mainaer.wjokhttp.R;
-import com.mainaer.wjoklib.okhttp.OkException;
+import com.mainaer.wjoklib.okhttp.exception.OkException;
 
 /**
  * Volley Utils
@@ -44,7 +44,8 @@ public final class OkUtils {
     public static void showError(TextView tv, OkException error) {
         tv.setText(getError(tv.getContext(), error));
     }
-    
+
+    // 自定义异常
     private static String getError(Context context, OkException error) {
         int type = error.getType();
         int resId;

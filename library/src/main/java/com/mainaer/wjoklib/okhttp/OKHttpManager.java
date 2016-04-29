@@ -87,6 +87,12 @@ public final class OKHttpManager {
         init(context, new OKHttpConfig.Builder().setBaseResponseClass(baseResponseClass).build());
     }
 
+    /**
+     * 程序初始化时，初始okhttp配置
+     *
+     * @param context
+     * @param config
+     */
     public static void init(Context context, OKHttpConfig config) {
         mInstance = new OKHttpManager(context, config);
     }

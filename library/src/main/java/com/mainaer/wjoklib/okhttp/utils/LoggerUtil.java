@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 20015 MaiNaEr All rights reserved
  */
-package com.mainaer.wjoklib.okhttp;
+package com.mainaer.wjoklib.okhttp.utils;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

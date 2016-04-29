@@ -1,12 +1,14 @@
 /*
  * Copyright (C) 20015 MaiNaEr All rights reserved
  */
-package com.mainaer.wjoklib.okhttp;
+package com.mainaer.wjoklib.okhttp.controller;
 
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
+
+import com.mainaer.wjoklib.okhttp.exception.OkException;
 
 import java.io.File;
 import java.io.FileOutputStream;

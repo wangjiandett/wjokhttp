@@ -15,7 +15,7 @@ import com.mainaer.wjokhttp.controller.UploadController;
 import com.mainaer.wjokhttp.model.LoadRequest;
 import com.mainaer.wjokhttp.model.LoadResponse;
 import com.mainaer.wjokhttp.model.UploadResponse;
-import com.mainaer.wjoklib.okhttp.OkException;
+import com.mainaer.wjoklib.okhttp.exception.OkException;
 
 import java.io.File;
 
