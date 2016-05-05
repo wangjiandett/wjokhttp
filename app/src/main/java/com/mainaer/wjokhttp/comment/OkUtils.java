@@ -23,9 +23,9 @@ import com.mainaer.wjokhttp.R;
 import com.mainaer.wjoklib.okhttp.exception.OkException;
 
 /**
- * Volley Utils
+ * Okhttp Utils
  *
- * @author Jamling
+ * @author wangjian
  * @date 2015年11月16日
  */
 public final class OkUtils {

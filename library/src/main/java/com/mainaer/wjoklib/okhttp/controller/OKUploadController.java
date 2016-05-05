@@ -14,7 +14,7 @@ import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 
 /**
- * 类/接口描述
+ * 文件图片上传基类
  *
  * @author wangjian
  * @date 2016/3/25.

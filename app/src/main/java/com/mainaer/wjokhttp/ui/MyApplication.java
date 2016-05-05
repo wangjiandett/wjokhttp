@@ -9,6 +9,8 @@ import com.mainaer.wjokhttp.model.BaseResponse;
 import com.mainaer.wjoklib.okhttp.OKHttpConfig;
 import com.mainaer.wjoklib.okhttp.OKHttpManager;
 
+import java.io.File;
+
 import okhttp3.Cache;
 
 /**
@@ -21,12 +23,13 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-
-        Cache cache = new Cache(getCacheDir(), 10 * 1024 * 1024);
+        // 自定义缓存目录和大小
+        File cacheFile = new File(getCacheDir(), "okcache");
+        Cache cache = new Cache(cacheFile, 100 * 1024 * 1024);// 100mb
 
         // 程序初始化时，初始okhttp配置
         OKHttpConfig OKHttpConfig = new OKHttpConfig.Builder().setBaseResponseClass(BaseResponse.class)
-            .setConnectTimeout(10).setReadTimeout(10).setWriteTimeout(10).setCache(cache).build();
+            .setConnectTimeout(10).setReadTimeout(10).setWriteTimeout(10).setCacheTime(1000).setCache(cache).build();
         OKHttpManager.init(this, OKHttpConfig);
     }
 }

@@ -70,7 +70,17 @@ public final class OKHttpManager {
         mBuilder.writeTimeout(writeTimeout, TimeUnit.SECONDS);
 
         //mBuilder.addInterceptor(new LoggingInterceptor());
-        mBuilder.addNetworkInterceptor(INTERCEPTOR);
+        // cache time
+        if (mConfig.getCacheTime() > 0) {
+            mBuilder.addNetworkInterceptor(new Interceptor() {
+                @Override
+                public Response intercept(Chain chain) throws IOException {
+                    Response response = chain.proceed(chain.request());
+                    return response.newBuilder().removeHeader("Pragma")
+                        .header("Cache-Control", String.format("max-age=%d", mConfig.getCacheTime())).build();
+                }
+            });
+        }
 
         if (mConfig.getCache() != null) {
             mBuilder.cache(mConfig.getCache());
@@ -117,27 +127,6 @@ public final class OKHttpManager {
         }
     }
 
-
-    //    private void setCache() {
-//        File file = mContext.getExternalCacheDir();
-//        long cacheSize = 100 * 1024 * 1024; // 100 MiB
-//        if (file != null) {
-//            Cache cache = new Cache(file.getAbsoluteFile(), cacheSize);
-//            mBuilder = mOkHttpClient.newBuilder();
-//            mOkHttpClient = mBuilder.cache(cache).build();//.addNetworkInterceptor(INTERCEPTOR)
-//        }
-//    }
-//
-    private static final Interceptor INTERCEPTOR = new Interceptor() {
-        @Override
-        public Response intercept(Chain chain) throws IOException {
-            Response originalResponse = chain.proceed(chain.request());
-            //android.util.Log.e("head", originalResponse.headers().toString());
-            return originalResponse.newBuilder().removeHeader("Pragma").header("Cache-Control", String.format(
-                "max-age=%d", 10)).build();
-        }
-    };
-
     class LoggingInterceptor implements Interceptor {
         @Override
         public Response intercept(Interceptor.Chain chain) throws IOException {
@@ -150,7 +139,8 @@ public final class OKHttpManager {
             Response response = chain.proceed(request);
 
 //            long t2 = System.nanoTime();
-//            android.util.Log.e("eeee", String.format("Received response for %s in %.1fms%n%s", response.request().url(),
+//            android.util.Log.e("eeee", String.format("Received response for %s in %.1fms%n%s", response.request()
+// .url(),
 //                (t2 - t1) / 1e6d, response.headers()));
 
             return response;
