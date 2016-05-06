@@ -24,6 +24,7 @@ import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.logging.HttpLoggingInterceptor;
 
 /**
  * OKHttpManager 管理
@@ -81,6 +82,11 @@ public final class OKHttpManager {
                 }
             });
         }
+
+        // 添加log监听器，打印所有log
+        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        mBuilder.addInterceptor(interceptor);
 
         if (mConfig.getCache() != null) {
             mBuilder.cache(mConfig.getCache());
