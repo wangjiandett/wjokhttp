@@ -76,15 +76,15 @@ public final class OKHttpManager {
                 @Override
                 public Response intercept(Chain chain) throws IOException {
                     Response response = chain.proceed(chain.request());
-                    return response.newBuilder().removeHeader("Pragma")
-                        .header("Cache-Control", String.format("max-age=%d", mConfig.getCacheTime())).build();
+                    return response.newBuilder().removeHeader("Pragma").header("Cache-Control", String.format(
+                        "max-age=%d", mConfig.getCacheTime())).build();
                 }
             });
         }
 
         // 添加log监听器，打印所有log
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-        interceptor.setLevel(mConfig.getLogLevel());
+        interceptor.setLevel(mConfig.getLogLevel() == null ? HttpLoggingInterceptor.Level.NONE : mConfig.getLogLevel());
         mBuilder.addInterceptor(interceptor);
 
         if (mConfig.getCache() != null) {
