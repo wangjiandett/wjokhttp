@@ -12,6 +12,7 @@ import com.mainaer.wjoklib.okhttp.OKHttpManager;
 import java.io.File;
 
 import okhttp3.Cache;
+import okhttp3.logging.HttpLoggingInterceptor;
 
 /**
  * 类/接口描述
@@ -28,8 +29,15 @@ public class MyApplication extends Application {
         Cache cache = new Cache(cacheFile, 100 * 1024 * 1024);// 100mb
 
         // 程序初始化时，初始okhttp配置
-        OKHttpConfig OKHttpConfig = new OKHttpConfig.Builder().setBaseResponseClass(BaseResponse.class)
-            .setConnectTimeout(10).setReadTimeout(10).setWriteTimeout(10).setCacheTime(1000).setCache(cache).build();
+        OKHttpConfig OKHttpConfig = new OKHttpConfig.Builder()
+            .setBaseResponseClass(BaseResponse.class)
+            .setLogLevel(HttpLoggingInterceptor.Level.BODY)// log level
+            .setConnectTimeout(10) // connect time out
+            .setReadTimeout(10) // read time out
+            .setWriteTimeout(10) // write time out
+            .setCacheTime(1000) // cache time
+            .setCache(cache) // cache
+            .build();
         OKHttpManager.init(this, OKHttpConfig);
     }
 }

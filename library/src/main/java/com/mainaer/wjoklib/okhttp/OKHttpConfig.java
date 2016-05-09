@@ -4,6 +4,7 @@
 package com.mainaer.wjoklib.okhttp;
 
 import okhttp3.Cache;
+import okhttp3.logging.HttpLoggingInterceptor;
 
 /**
  * OKHttpConfig 自定义配置
@@ -18,6 +19,7 @@ public class OKHttpConfig {
     private long mWriteTimeout;
     private long mCacheTime;
     private Cache mCache;
+    private HttpLoggingInterceptor.Level mLogLevel;
     private Class<? extends OKBaseResponse> mBaseResponseClass;
 
     private OKHttpConfig(Builder builder) {
@@ -27,6 +29,7 @@ public class OKHttpConfig {
         this.mReadTimeout = builder.readTimeout;
         this.mCacheTime = builder.cacheTime;
         this.mCache = builder.cache;
+        this.mLogLevel = builder.level;
     }
 
     public long getConnectTimeout() {
@@ -49,6 +52,10 @@ public class OKHttpConfig {
         return mCache;
     }
 
+    public HttpLoggingInterceptor.Level getLogLevel() {
+        return mLogLevel;
+    }
+
     public Class<? extends OKBaseResponse> getBaseResponseClass() {
         return mBaseResponseClass;
     }
@@ -60,6 +67,7 @@ public class OKHttpConfig {
         private long writeTimeout;
         private long cacheTime;
         private Cache cache;
+        private HttpLoggingInterceptor.Level level;
 
         /**
          * 设置baseresponse class
@@ -124,6 +132,11 @@ public class OKHttpConfig {
          */
         public Builder setCache(Cache cache) {
             this.cache = cache;
+            return this;
+        }
+
+        public Builder setLogLevel(HttpLoggingInterceptor.Level logLevel) {
+            this.level = logLevel;
             return this;
         }
 
