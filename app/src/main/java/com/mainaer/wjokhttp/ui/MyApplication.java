@@ -8,6 +8,7 @@ import android.app.Application;
 import com.mainaer.wjokhttp.model.BaseResponse;
 import com.mainaer.wjoklib.okhttp.OKHttpConfig;
 import com.mainaer.wjoklib.okhttp.OKHttpManager;
+import com.mainaer.wjoklib.okhttp.download.DownloadManager;
 
 import java.io.File;
 
@@ -39,5 +40,7 @@ public class MyApplication extends Application {
             .setCache(cache) // cache
             .build();
         OKHttpManager.init(this, OKHttpConfig);
+
+        DownloadManager.init(this);
     }
 }

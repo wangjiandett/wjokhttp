@@ -20,8 +20,15 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    // parse json
     compile 'com.google.code.gson:gson:2.3'
+    // okhttp
     compile 'com.squareup.okhttp3:okhttp:3.2.0'
-    compile 'com.github.bumptech.glide:glide:3.7.0'
+    // okhttp log controller
     compile 'com.squareup.okhttp3:logging-interceptor:3.0.1'
+    // image load library
+    compile 'com.github.bumptech.glide:glide:3.7.0'
+    // green dao library
+    compile 'org.greenrobot:greendao:2.2.0'
+
 }
