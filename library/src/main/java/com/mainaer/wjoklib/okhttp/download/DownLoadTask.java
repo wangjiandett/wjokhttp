@@ -18,6 +18,7 @@ package com.mainaer.wjoklib.okhttp.download;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.text.TextUtils;
 
 import com.mainaer.wjoklib.okhttp.download.dao.DownloadDao;
@@ -60,7 +61,7 @@ public class DownloadTask implements Runnable {
     private long completedSize; //  Download section has been completed
     private String url;// file url
     private String saveDirPath;// file save path
-    private int updateSize; // The database is updated once every 10k
+    private double updateSize; // The database is updated 100 times
     private String fileName; // File name when saving
     private int downloadStatus;
 
@@ -76,7 +77,6 @@ public class DownloadTask implements Runnable {
         this.downloadStatus = mBuilder.downloadStatus;
         this.mListener = mBuilder.listener;
         // 以kb为计算单位
-        this.updateSize = mBuilder.rateKB * 1024;
     }
 
     @Override
@@ -107,14 +107,13 @@ public class DownloadTask implements Runnable {
                 dbEntity = new DownloadEntity(id, totalSize, totalSize, url, saveDirPath, fileName, downloadStatus);
                 mDownloadDao.insertOrReplace(dbEntity);
                 LoggerUtil.i("=====totalSize===== " + totalSize);
-                // 下载完成回调
-                onCallBack();
+                // 执行finally中的回调
                 return;
             }
 
             // 开始下载
             Request request = new Request.Builder().url(url).header("RANGE",
-                "bytes=" + completedSize + "-")    //  Http value set breakpoints RANGE
+                "bytes=" + completedSize + "-") // Http value set breakpoints RANGE
                 .build();
             // 文件跳转到指定位置开始写入
             mDownLoadFile.seek(completedSize);
@@ -122,10 +121,13 @@ public class DownloadTask implements Runnable {
             ResponseBody responseBody = response.body();
             if (responseBody != null) {
                 downloadStatus = DownloadStatus.DOWNLOAD_STATUS_DOWNLOADING;
-                onCallBack();
+                //onCallBack();
                 if (totalSize <= 0) {
                     totalSize = responseBody.contentLength();
                 }
+
+                updateSize = totalSize / 100;
+
                 // 获得文件流
                 inputStream = responseBody.byteStream();
                 bis = new BufferedInputStream(inputStream);
@@ -142,9 +144,9 @@ public class DownloadTask implements Runnable {
                     mDownLoadFile.write(buffer, 0, length);
                     completedSize += length;
                     buffOffset += length;
-                    LoggerUtil.i("finally downloadStatus = " + downloadStatus);
-                    LoggerUtil.i("completedSize=" + completedSize + " ,totalSize=" + totalSize + " ," + "Status="
-                        + downloadStatus);
+
+                    LoggerUtil.i("completedSize=" + completedSize + " ,totalSize=" +
+                        totalSize + " ," + "" + "Status=" + downloadStatus);
                     // 下载多少触发一次回调，更新一次数据库
                     // 以kb计算
                     if (buffOffset >= updateSize) {
@@ -152,12 +154,13 @@ public class DownloadTask implements Runnable {
                         buffOffset = 0;
                         // 支持断点续传时，在往数据库中保存下载信息
                         // 此处会频繁更新数据库
-                        dbEntity.setCompletedSize(completedSize);
-                        mDownloadDao.update(dbEntity);
-                        //onDownloading;
+                        // dbEntity.setCompletedSize(completedSize);
+                        // mDownloadDao.update(dbEntity);
+                        //onDownloading 回调
                         onCallBack();
                     }
                 }
+
                 //onDownloading;
                 // 防止最后一次不足UPDATE_SIZE，导致percent无法达到100%
                 onCallBack();
@@ -173,18 +176,16 @@ public class DownloadTask implements Runnable {
             downloadStatus = DownloadStatus.DOWNLOAD_STATUS_ERROR;
             errorCode = DownloadStatus.DOWNLOAD_ERROR_IO_ERROR;
         } finally {
-            // 下载完更新数据库
-            if (totalSize > 0 && completedSize > 0 && totalSize == completedSize) {
-                downloadStatus = DownloadStatus.DOWNLOAD_STATUS_COMPLETED;
+            if (isDownloadFinish()) {
+                onCallBack();
             }
 
-            onCallBack();
-
+            // 下载后新数据库
             if (dbEntity != null) {
+                dbEntity.setCompletedSize(completedSize);
                 dbEntity.setDownloadStatus(downloadStatus);
                 mDownloadDao.update(dbEntity);
             }
-            LoggerUtil.i("finally downloadStatus = " + downloadStatus);
 
             // 回收资源
             if (bis != null) {
@@ -199,39 +200,13 @@ public class DownloadTask implements Runnable {
         }
     }
 
-    /**
-     * 分发回调事件到ui层
-     */
-    private void onCallBack() {
-        // 同步manager中的task信息
-        DownloadManager.getInstance().updateDownloadTask(this);
-        getHandler().post(new Runnable() {
-            @Override
-            public void run() {
-                switch (downloadStatus) {
-                    // 正在下载
-                    case DownloadStatus.DOWNLOAD_STATUS_ERROR:
-                        mListener.onError(DownloadTask.this, errorCode);
-                        break;
-                    // 正在下载
-                    case DownloadStatus.DOWNLOAD_STATUS_DOWNLOADING:
-                        mListener.onDownloading(DownloadTask.this, completedSize, totalSize, getDownLoadPercent());
-                        break;
-                    // 完成
-                    case DownloadStatus.DOWNLOAD_STATUS_COMPLETED:
-                        mListener.onDownloadSuccess(DownloadTask.this, new File(getFilePath()));
-                        break;
-                    // 停止
-                    case DownloadStatus.DOWNLOAD_STATUS_PAUSE:
-                        mListener.onPause(DownloadTask.this, completedSize, totalSize, getDownLoadPercent());
-                        break;
-                    // 取消
-                    case DownloadStatus.DOWNLOAD_STATUS_CANCEL:
-                        cancel();
-                        break;
-                }
-            }
-        });
+    private boolean isDownloadFinish() {
+        boolean finish = false;
+        if (totalSize > 0 && completedSize > 0 && totalSize == completedSize) {
+            downloadStatus = DownloadStatus.DOWNLOAD_STATUS_COMPLETED;
+            finish = true;
+        }
+        return finish;
     }
 
     /**
@@ -248,14 +223,43 @@ public class DownloadTask implements Runnable {
         }
     }
 
-    static Handler mHandler;
-
-    private Handler getHandler() {
-        if (mHandler == null) {
-            mHandler = new Handler(Looper.getMainLooper());
-        }
-        return mHandler;
+    /**
+     * 分发回调事件到ui层
+     */
+    private void onCallBack() {
+        mHandler.sendEmptyMessage(downloadStatus);
+        // 同步manager中的task信息
+        DownloadManager.getInstance().updateDownloadTask(this);
     }
+
+    Handler mHandler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            int code = msg.what;
+            switch (code) {
+                // 下载失败
+                case DownloadStatus.DOWNLOAD_STATUS_ERROR:
+                    mListener.onError(DownloadTask.this, errorCode);
+                    break;
+                // 正在下载
+                case DownloadStatus.DOWNLOAD_STATUS_DOWNLOADING:
+                    mListener.onDownloading(DownloadTask.this, completedSize, totalSize, getDownLoadPercent());
+                    break;
+                // 取消
+                case DownloadStatus.DOWNLOAD_STATUS_CANCEL:
+                    cancel();
+                    break;
+                // 完成
+                case DownloadStatus.DOWNLOAD_STATUS_COMPLETED:
+                    mListener.onDownloadSuccess(DownloadTask.this, new File(getFilePath()));
+                    break;
+                // 停止
+                case DownloadStatus.DOWNLOAD_STATUS_PAUSE:
+                    mListener.onPause(DownloadTask.this, completedSize, totalSize, getDownLoadPercent());
+                    break;
+            }
+        }
+    };
 
     private String getDownLoadPercent() {
         String baifenbi = "0";// 接受百分比的值
@@ -272,7 +276,6 @@ public class DownloadTask implements Runnable {
             DecimalFormat df1 = new DecimalFormat("0");//0.00
             baifenbi = df1.format(fen);
         }
-
         return baifenbi;
     }
 
@@ -329,7 +332,7 @@ public class DownloadTask implements Runnable {
         return mBuilder;
     }
 
-    public void setBuilder(Builder builder){
+    public void setBuilder(Builder builder) {
         this.mBuilder = builder;
     }
 
@@ -354,6 +357,14 @@ public class DownloadTask implements Runnable {
         return fileName;
     }
 
+    public void setTotalSize(long totalSize) {
+        this.totalSize = totalSize;
+    }
+
+    public void setCompletedSize(long completedSize) {
+        this.completedSize = completedSize;
+    }
+
     public void setDownloadStatus(int downloadStatus) {
         this.downloadStatus = downloadStatus;
     }
@@ -368,7 +379,6 @@ public class DownloadTask implements Runnable {
         private String saveDirPath;// file save path
         private String fileName; // File name when saving
         private int downloadStatus = DownloadStatus.DOWNLOAD_STATUS_INIT;
-        private int rateKB = 80;// 每下载80kb回调一次
 
         private DownloadTaskListener listener;
 
@@ -405,18 +415,6 @@ public class DownloadTask implements Runnable {
 
         public Builder setListener(DownloadTaskListener listener) {
             this.listener = listener;
-            return this;
-        }
-
-        /**
-         * 设置下载回调频率，默认80kb如：rateKB = 80表示下载80kb回调一次onDownloading()，更新一次数据库<br/>
-         * 可适当增大rateKB的值，以减小更新数据库的次数，同时也会减小回调次数，需根据实际情况自行斟酌
-         *
-         * @param rateKB
-         * @return
-         */
-        public Builder setCallBackRate(int rateKB) {
-            this.rateKB = rateKB;
             return this;
         }
 
