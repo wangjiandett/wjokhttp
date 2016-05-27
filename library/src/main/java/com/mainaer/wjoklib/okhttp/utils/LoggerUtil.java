@@ -3,6 +3,8 @@
  */
 package com.mainaer.wjoklib.okhttp.utils;
 
+import com.mainaer.wjoklib.BuildConfig;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,11 +19,17 @@ public class LoggerUtil {
     static Logger mLogger = Logger.getLogger("okhttp");
 
     public static void i(String msg) {
-        mLogger.log(Level.INFO, msg);
+        if(BuildConfig.DEBUG){
+            mLogger.log(Level.INFO, msg);
+        }
+
+
     }
 
     public static void w(String msg) {
-        mLogger.log(Level.WARNING, msg);
+        if(BuildConfig.DEBUG){
+            mLogger.log(Level.WARNING, msg);
+        }
     }
 
 }

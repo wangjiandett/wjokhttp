@@ -39,7 +39,7 @@ public class LoadController extends MyAppController<LoadController.LoadListener>
 
         @Override
         public IUrl getUrl() {
-            // 后去url
+            // 获取url
             return URLConst.Product.PRODUCTLIST;
         }
 

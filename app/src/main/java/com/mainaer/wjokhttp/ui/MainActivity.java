@@ -6,6 +6,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.mainaer.wjokhttp.R;
@@ -15,6 +16,7 @@ import com.mainaer.wjokhttp.controller.UploadController;
 import com.mainaer.wjokhttp.model.LoadRequest;
 import com.mainaer.wjokhttp.model.LoadResponse;
 import com.mainaer.wjokhttp.model.UploadResponse;
+import com.mainaer.wjokhttp.ui.view.H5Activity;
 import com.mainaer.wjoklib.okhttp.exception.OkException;
 
 import java.io.File;
@@ -22,7 +24,6 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements LoadController.LoadListener, View.OnClickListener,
     UploadController.UploadListener {
-
 
     ListView mListview;
     LoadController mLoadController;
@@ -61,6 +62,15 @@ public class MainActivity extends AppCompatActivity implements LoadController.Lo
 
         mMyAdapter = new MyAdapter(this);
         mListview.setAdapter(mMyAdapter);
+
+        mListview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                LoadResponse response = (LoadResponse) parent.getAdapter().getItem(position);
+                H5Activity.go(MainActivity.this, response);
+            }
+        });
+
     }
 
     // 加载列表
