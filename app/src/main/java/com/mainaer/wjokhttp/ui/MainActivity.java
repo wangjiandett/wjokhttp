@@ -18,6 +18,7 @@ import com.mainaer.wjokhttp.model.UploadResponse;
 import com.mainaer.wjoklib.okhttp.exception.OkException;
 
 import java.io.File;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements LoadController.LoadListener, View.OnClickListener,
     UploadController.UploadListener {
@@ -69,8 +70,8 @@ public class MainActivity extends AppCompatActivity implements LoadController.Lo
     }
 
     @Override
-    public void onLoadSuccess(LoadResponse loadResponse) {
-        mMyAdapter.setList(loadResponse.list);
+    public void onLoadSuccess(List<LoadResponse> loadResponse) {
+        mMyAdapter.setList(loadResponse);
         mMyAdapter.notifyDataSetChanged();
     }
 

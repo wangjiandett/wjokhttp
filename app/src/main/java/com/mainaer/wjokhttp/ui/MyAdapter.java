@@ -11,8 +11,8 @@ import android.widget.TextView;
 
 import com.mainaer.wjokhttp.R;
 import com.mainaer.wjokhttp.model.LoadResponse;
-import com.mainaer.wjokhttp.ui.view.GlideImageView;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +24,7 @@ import java.util.List;
  */
 public class MyAdapter extends BaseAdapter {
 
-    List<LoadResponse.Item> mList = new ArrayList<>();
+    List<LoadResponse> mList = new ArrayList<>();
 
     Context mContext;
 
@@ -32,7 +32,7 @@ public class MyAdapter extends BaseAdapter {
         this.mContext = context;
     }
 
-    public void setList(List<LoadResponse.Item> list) {
+    public void setList(List<LoadResponse> list) {
         this.mList = list;
     }
 
@@ -57,11 +57,19 @@ public class MyAdapter extends BaseAdapter {
             convertView = View.inflate(mContext,R.layout.list_item,null);
         }
         TextView text = (TextView) convertView.findViewById(R.id.text);
-        GlideImageView imageview = (GlideImageView) convertView.findViewById(R.id.imageview);
-        LoadResponse.Item response = (LoadResponse.Item)getItem(position);
-        text.setText(response.hellname);
-        imageview.setImageURL(response.thumb_path);
+        TextView tvSources = (TextView) convertView.findViewById(R.id.tv_sources);
+        TextView tvTime = (TextView) convertView.findViewById(R.id.tv_time);
+        LoadResponse response = (LoadResponse)getItem(position);
+        text.setText(response.title);
+
+        tvSources.setText(response.source);
+        tvTime.setText(format(response.behot_time));
         return convertView;
+    }
+
+    private String format(long time){
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        return format.format(time);
     }
 
 }

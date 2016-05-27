@@ -32,7 +32,7 @@ public abstract class MyAppController<Listener> extends OKHttpController<Listene
         public boolean onInterceptor(OKBaseResponse response) {
             if (response instanceof BaseResponse) {
                 BaseResponse resp = (BaseResponse) response;
-                if (!"10000001".equals(resp.getStatus())) {//101表示成功
+                if (!"000000".equals(resp.getStatus())) {//101表示成功
                     // 主线程中调用onError,不能直接调用onError
                     sendMessage(resp.getMessage(), ERROR_CODE);
                     return true;

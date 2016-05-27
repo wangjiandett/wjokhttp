@@ -22,12 +22,12 @@ public class BaseResponse implements OKBaseResponse {
     /**
      * 消息
      */
-    public String message;
+    public String desc;
 
     /**
      * 数据
      */
-    public Object data;
+    public Object detail;
 
     public String getStatus() {
         return status;
@@ -38,27 +38,27 @@ public class BaseResponse implements OKBaseResponse {
     }
 
     public String getMessage() {
-        return message;
+        return desc;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setMessage(String desc) {
+        this.desc = desc;
     }
 
-    public void setData(Object data) {
-        this.data = data;
+    public void setData(Object detail) {
+        this.detail = detail;
     }
 
     @Override
     public String getData() {
-        if (data instanceof String) {
-            return (String) data;
+        if (detail instanceof String) {
+            return (String) detail;
         }
-        return new Gson().toJson(data);
+        return new Gson().toJson(detail);
     }
 
     @Override
     public String toString() {
-        return "{status:" + this.status + ", message:" + this.message + ", data:" + this.data + "}";
+        return "{status:" + this.status + ", desc:" + this.desc + ", detail:" + this.detail + "}";
     }
 }

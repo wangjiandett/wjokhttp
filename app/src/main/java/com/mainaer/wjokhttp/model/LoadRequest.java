@@ -12,8 +12,5 @@ import java.io.Serializable;
  * @date 2016/3/23.
  */
 public class LoadRequest implements Serializable{
-    public String client = "Android";
-    public int city_id = 2;
-    public int page = 1;
-    public String uuid = "A000005566DA77";
+    public int size = 300;
 }

@@ -11,6 +11,8 @@ import com.mainaer.wjokhttp.url.URLConst;
 import com.mainaer.wjoklib.okhttp.IUrl;
 import com.mainaer.wjoklib.okhttp.exception.OkException;
 
+import java.util.List;
+
 
 /**
  * 类/接口描述
@@ -26,14 +28,14 @@ public class LoadController extends MyAppController<LoadController.LoadListener>
 
     public void load(LoadRequest request) {
         Task task = new Task();
-        task.load(request, LoadResponse.class);
+        task.load2List(request, LoadResponse.class);
     }
 
     /**
      * 执行加载任务的task，其回调都是在主线程中调用
      * 需要加入请求参数LoadRequest和相应参数LoadResponse
      */
-    public class Task extends AppBaseTask<LoadRequest, LoadResponse> {
+    public class Task extends AppBaseTask<LoadRequest, List<LoadResponse>> {
 
         @Override
         public IUrl getUrl() {
@@ -42,7 +44,7 @@ public class LoadController extends MyAppController<LoadController.LoadListener>
         }
 
         @Override
-        public void onSuccess(LoadResponse loadResponse) {
+        public void onSuccess(List<LoadResponse> loadResponse) {
             // 获得加载成功的相应数据，自动解析成LoadResponse
             mListener.onLoadSuccess(loadResponse);
         }
@@ -59,7 +61,7 @@ public class LoadController extends MyAppController<LoadController.LoadListener>
      */
     public interface LoadListener {
 
-        void onLoadSuccess(LoadResponse loadResponse);
+        void onLoadSuccess(List<LoadResponse> loadResponse);
 
         void onLoadFail(OkException e);
     }
