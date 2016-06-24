@@ -9,7 +9,7 @@ import com.mainaer.wjokhttp.model.DownRequest;
 import com.mainaer.wjokhttp.url.URLConst;
 import com.mainaer.wjoklib.okhttp.IUrl;
 import com.mainaer.wjoklib.okhttp.controller.OKDownLoadController;
-import com.mainaer.wjoklib.okhttp.exception.OkException;
+import com.mainaer.wjoklib.okhttp.exception.OkHttpError;
 
 import java.io.File;
 
@@ -57,7 +57,7 @@ public class DownController extends OKDownLoadController<DownController.DownLoad
         }
 
         @Override
-        protected void onError(OkException error) {
+        protected void onError(OkHttpError error) {
             mListener.onDownLoadFailure(error);
         }
     }
@@ -67,7 +67,7 @@ public class DownController extends OKDownLoadController<DownController.DownLoad
 
         void onDownLoadSuccess(File file);
 
-        void onDownLoadFailure(OkException error);
+        void onDownLoadFailure(OkHttpError error);
     }
 
 

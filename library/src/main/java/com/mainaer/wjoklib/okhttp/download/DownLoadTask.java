@@ -383,7 +383,7 @@ public class DownloadTask implements Runnable {
         private DownloadTaskListener listener;
 
         /**
-         * 作为task删除停止的标准，如果为空则默认是url
+         * 作为下载task开始、删除、停止的key值，如果为空则默认是url
          *
          * @param id
          * @return
@@ -393,26 +393,56 @@ public class DownloadTask implements Runnable {
             return this;
         }
 
+        /**
+         * 下载url（not null）
+         *
+         * @param url
+         * @return
+         */
         public Builder setUrl(String url) {
             this.url = url;
             return this;
         }
 
+        /**
+         * 设置保存地址
+         *
+         * @param saveDirPath
+         * @return
+         */
         public Builder setSaveDirPath(String saveDirPath) {
             this.saveDirPath = saveDirPath;
             return this;
         }
 
+        /**
+         * 设置下载状态
+         *
+         * @param downloadStatus
+         * @return
+         */
         public Builder setDownloadStatus(int downloadStatus) {
             this.downloadStatus = downloadStatus;
             return this;
         }
 
+        /**
+         * 设置文件名
+         *
+         * @param fileName
+         * @return
+         */
         public Builder setFileName(String fileName) {
             this.fileName = fileName;
             return this;
         }
 
+        /**
+         * 设置下载回调
+         *
+         * @param listener
+         * @return
+         */
         public Builder setListener(DownloadTaskListener listener) {
             this.listener = listener;
             return this;

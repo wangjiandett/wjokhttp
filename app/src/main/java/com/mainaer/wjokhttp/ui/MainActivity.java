@@ -17,11 +17,14 @@ import com.mainaer.wjokhttp.model.LoadRequest;
 import com.mainaer.wjokhttp.model.LoadResponse;
 import com.mainaer.wjokhttp.model.UploadResponse;
 import com.mainaer.wjokhttp.ui.view.H5Activity;
-import com.mainaer.wjoklib.okhttp.exception.OkException;
+import com.mainaer.wjoklib.okhttp.exception.OkHttpError;
 
 import java.io.File;
 import java.util.List;
 
+/**
+ * github地址项目地址 https://github.com/wangjiandett/wjokhttp
+ */
 public class MainActivity extends AppCompatActivity implements LoadController.LoadListener, View.OnClickListener,
     UploadController.UploadListener {
 
@@ -57,9 +60,11 @@ public class MainActivity extends AppCompatActivity implements LoadController.Lo
         btnDownload = findViewById(R.id.download);
         btnDownload.setOnClickListener(this);
 
+        // init controller
         mLoadController = new LoadController(this);
         mUploadController = new UploadController(this);
 
+        // init adapter
         mMyAdapter = new MyAdapter(this);
         mListview.setAdapter(mMyAdapter);
 
@@ -75,18 +80,21 @@ public class MainActivity extends AppCompatActivity implements LoadController.Lo
 
     // 加载列表
     private void initData() {
+        // create request and load data
         LoadRequest request = new LoadRequest();
         mLoadController.load(request);
     }
 
     @Override
     public void onLoadSuccess(List<LoadResponse> loadResponse) {
+        // set data to the ui
         mMyAdapter.setList(loadResponse);
         mMyAdapter.notifyDataSetChanged();
     }
 
     @Override
-    public void onLoadFail(OkException e) {
+    public void onLoadFail(OkHttpError e) {
+        // toast error info
         OkUtils.toastError(this, e);
     }
 
@@ -115,7 +123,8 @@ public class MainActivity extends AppCompatActivity implements LoadController.Lo
     }
 
     @Override
-    public void upLoadFail(OkException e) {
+    public void upLoadFail(OkHttpError e) {
+        // toast 错误信息
         OkUtils.toastError(this, e);
     }
 }

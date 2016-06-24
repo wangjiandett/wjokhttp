@@ -9,7 +9,7 @@ import com.mainaer.wjokhttp.model.LoadRequest;
 import com.mainaer.wjokhttp.model.LoadResponse;
 import com.mainaer.wjokhttp.url.URLConst;
 import com.mainaer.wjoklib.okhttp.IUrl;
-import com.mainaer.wjoklib.okhttp.exception.OkException;
+import com.mainaer.wjoklib.okhttp.exception.OkHttpError;
 
 import java.util.List;
 
@@ -50,7 +50,7 @@ public class LoadController extends MyAppController<LoadController.LoadListener>
         }
 
         @Override
-        public void onError(OkException e) {
+        public void onError(OkHttpError e) {
             // 加载失败回调
             mListener.onLoadFail(e);
         }
@@ -63,6 +63,6 @@ public class LoadController extends MyAppController<LoadController.LoadListener>
 
         void onLoadSuccess(List<LoadResponse> loadResponse);
 
-        void onLoadFail(OkException e);
+        void onLoadFail(OkHttpError e);
     }
 }

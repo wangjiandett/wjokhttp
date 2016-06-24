@@ -8,7 +8,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
 
-import com.mainaer.wjoklib.okhttp.exception.OkException;
+import com.mainaer.wjoklib.okhttp.exception.OkHttpError;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -59,7 +59,7 @@ public abstract class OKDownLoadController<Listener> extends OKHttpController<Li
                         onSuccess(file);
                     }
                     else if (msg.what == DOWN_FAILURE) {
-                        onError((OkException) msg.obj);
+                        onError((OkHttpError) msg.obj);
                     }
                 }
             }
@@ -96,7 +96,7 @@ public abstract class OKDownLoadController<Listener> extends OKHttpController<Li
                         postMessage(DOWN_FAILURE, "the methord getFileDir() or getFileName() is null");
                     }
                 } catch (Exception e) {
-                    postMessage(DOWN_FAILURE, new OkException(e));
+                    postMessage(DOWN_FAILURE, new OkHttpError(e));
                 }
             }
         }

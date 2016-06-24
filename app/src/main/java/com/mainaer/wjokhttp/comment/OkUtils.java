@@ -20,7 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mainaer.wjokhttp.R;
-import com.mainaer.wjoklib.okhttp.exception.OkException;
+import com.mainaer.wjoklib.okhttp.exception.OkHttpError;
 
 /**
  * Okhttp Utils
@@ -36,35 +36,26 @@ public final class OkUtils {
     private OkUtils() {
     }
     
-    public static void toastError(Context context, OkException error) {
+    public static void toastError(Context context, OkHttpError error) {
         String msg = getError(context, error);
         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
     }
     
-    public static void showError(TextView tv, OkException error) {
+    public static void showError(TextView tv, OkHttpError error) {
         tv.setText(getError(tv.getContext(), error));
     }
 
     // 自定义异常
-    private static String getError(Context context, OkException error) {
+    private static String getError(Context context, OkHttpError error) {
         int type = error.getType();
         int resId;
-        if (type == OkException.TYPE_AUTH) {
-            resId = R.string.error_type_auth;
-        }
-        else if (type == OkException.TYPE_NO_CONNECTION) {
+        if (type == OkHttpError.TYPE_NO_CONNECTION) {
             resId = R.string.error_type_no_network;
         }
-        else if (type == OkException.TYPE_TIMEOUT) {
+        else if (type == OkHttpError.TYPE_TIMEOUT) {
             resId = R.string.error_type_timeout;
         }
-        else if (type == OkException.TYPE_NETWORK) {
-            resId = R.string.error_type_no_network;
-        }
-        else if (type == OkException.TYPE_SERVER) {
-            resId = R.string.error_type_server;
-        }
-        else if (type == OkException.TYPE_PARSE) {
+        else if (type == OkHttpError.TYPE_PARSE) {
             resId = R.string.error_type_parse;
         }
         else {

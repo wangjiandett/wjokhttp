@@ -17,28 +17,26 @@ package com.mainaer.wjoklib.okhttp.exception;
 
 import com.google.gson.JsonSyntaxException;
 
+import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
 /**
- * 对异常进行统一处理
+ * 对异常进行统一处理，更多异常状态请如下自行处理
  *
  * @author wangjian
  * @date 2015年11月9日
  */
-public class OkException extends Exception {
+public class OkHttpError extends Exception {
     public static final int TYPE_NO_CONNECTION = 0x01;//网络错误
     public static final int TYPE_TIMEOUT = 0x02;//连接超时
-    public static final int TYPE_NETWORK = 0x03;//网络未连接
-    public static final int TYPE_AUTH = 0x04;//身份验证失败
-    public static final int TYPE_SERVER = 0x05;//服务暂时不可用, 请稍后再试
-    public static final int TYPE_PARSE = 0x10;// 数据解析错误
-    public static final int TYPE_CLIENT = 0x11;
+    public static final int TYPE_PARSE = 0x03;// 数据解析错误
+    public static final int TYPE_ERROR = 0x04;// 其他原因数据解析失败
 
 
     public int mErrorType;
 
-    public OkException(Exception error) {
+    public OkHttpError(Exception error) {
         super(error);
         initType();
     }
@@ -56,6 +54,12 @@ public class OkException extends Exception {
         }
         else if (error instanceof JsonSyntaxException) {
             mErrorType = TYPE_PARSE;
+        }
+        else if (error instanceof IOException) {
+            mErrorType = TYPE_PARSE;
+        }
+        else if (error instanceof Exception) {
+            mErrorType = TYPE_ERROR;
         }
     }
     

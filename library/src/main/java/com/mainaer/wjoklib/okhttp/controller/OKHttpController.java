@@ -13,7 +13,7 @@ import com.google.gson.JsonSyntaxException;
 import com.mainaer.wjoklib.okhttp.IUrl;
 import com.mainaer.wjoklib.okhttp.OKBaseResponse;
 import com.mainaer.wjoklib.okhttp.OKHttpManager;
-import com.mainaer.wjoklib.okhttp.exception.OkException;
+import com.mainaer.wjoklib.okhttp.exception.OkHttpError;
 import com.mainaer.wjoklib.okhttp.utils.LoggerUtil;
 import com.mainaer.wjoklib.okhttp.utils.OkStringUtils;
 
@@ -86,7 +86,7 @@ public abstract class OKHttpController<Listener> {
          *
          * @param error
          */
-        protected abstract void onError(OkException error);
+        protected abstract void onError(OkHttpError error);
 
         /**
          * Intercept 'data' json parser
@@ -144,6 +144,7 @@ public abstract class OKHttpController<Listener> {
                     bindBody(url, builder).put(requestBody);
                     break;
                 case Method.HEAD:
+                    // 待测
                     bindBody(url, builder).head();
                     break;
                 case Method.PATCH:
@@ -155,7 +156,7 @@ public abstract class OKHttpController<Listener> {
 
             // 构建tag
             String tag = getClass().getName();
-            // 封装请求.cacheControl(new CacheControl.Builder().maxAge(10, TimeUnit.SECONDS) .build())
+            // 封装请求
             Request request = builder.tag(tag).build();
             // 执行请求
             mCall = mClient.newCall(request);
@@ -173,7 +174,7 @@ public abstract class OKHttpController<Listener> {
 
         @Override
         public final void onFailure(Call call, IOException e) {
-            sendMessage(new OkException(e), ERROR_CODE);
+            sendMessage(new OkHttpError(e), ERROR_CODE);
         }
 
         @Override
@@ -225,13 +226,13 @@ public abstract class OKHttpController<Listener> {
                     }
                 }
             } catch (IOException e) {
-                sendMessage(new OkException(e), ERROR_CODE);
+                sendMessage(new OkHttpError(e), ERROR_CODE);
                 return;
             } catch (JsonSyntaxException e) {
-                sendMessage(new OkException(e), ERROR_CODE);
+                sendMessage(new OkHttpError(e), ERROR_CODE);
                 return;
             } catch (Exception e) {
-                sendMessage(new OkException(e), ERROR_CODE);
+                sendMessage(new OkHttpError(e), ERROR_CODE);
                 return;
             }
         }
@@ -257,7 +258,7 @@ public abstract class OKHttpController<Listener> {
                     onSuccess((Output) msg.obj);
                 }
                 else if (msg.what == ERROR_CODE) {
-                    onError((OkException) msg.obj);
+                    onError((OkHttpError) msg.obj);
                 }
             }
         };
