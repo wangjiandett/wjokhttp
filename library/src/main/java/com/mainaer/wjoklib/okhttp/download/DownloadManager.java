@@ -42,13 +42,14 @@ public class DownloadManager {
     private static Context mContext;
 
     private DownloadDao mDownloadDao;
-    private OkHttpClient mClient;
 
-    private int mPoolSize = 5;
+    private static final int M_POOL_SIZE = 5;
     // 将执行结果保存在future变量中
     private Map<String, Future> mFutureMap;
     private ExecutorService mExecutor;
-    private Map<String, DownloadTask> mCurrentTaskList;
+    private Map<String, DownLoadTask> mCurrentTaskList;
+    
+    private OkHttpClient mClient;
 
     static DownloadManager manager;
 
@@ -84,19 +85,20 @@ public class DownloadManager {
     }
 
     public DownloadManager() {
-        initOkhttpClient();
-
         // 数据库初始化
         DaoMaster.OpenHelper openHelper = new DaoMaster.DevOpenHelper(mContext, "downloadDB", null);
         DaoMaster daoMaster = new DaoMaster(openHelper.getWritableDatabase());
         mDownloadDao = daoMaster.newSession().getDownloadDao();
-
+    
+        // 获取client，清除interceptors，防止打印body日志出现oom
+        initOkhttpClient();
+        
         // 初始化线程池
-        mExecutor = Executors.newFixedThreadPool(mPoolSize);
+        mExecutor = Executors.newFixedThreadPool(M_POOL_SIZE);
         mFutureMap = new HashMap<>();
         mCurrentTaskList = new HashMap<>();
     }
-
+    
     /**
      * 初始化okhttp
      */
@@ -113,19 +115,22 @@ public class DownloadManager {
      *
      * @param downloadTask
      */
-    public void addDownloadTask(DownloadTask downloadTask) {
-        if (downloadTask != null && !isDownloading(downloadTask)) {
+    public void addDownloadTask(DownLoadTask downloadTask) {
+        DownLoadTask saveTask = getDownloadTask(downloadTask.getId());
+        if (downloadTask != null && !isDownloading(saveTask)) {
+            // 设置下载所需的信息
             downloadTask.setDownloadDao(mDownloadDao);
             downloadTask.setClient(mClient);
             downloadTask.setDownloadStatus(DownloadStatus.DOWNLOAD_STATUS_INIT);
             // 保存下载task列表
-            mCurrentTaskList.put(downloadTask.getId(), downloadTask);
+            String id = downloadTask.getId();
+            mCurrentTaskList.put(id, downloadTask);
             Future future = mExecutor.submit(downloadTask);
-            mFutureMap.put(downloadTask.getId(), future);
+            mFutureMap.put(id, future);
         }
     }
 
-    private boolean isDownloading(DownloadTask task) {
+    private boolean isDownloading(DownLoadTask task) {
         if (task != null) {
             if (task.getDownloadStatus() == DownloadStatus.DOWNLOAD_STATUS_DOWNLOADING) {
                 return true;
@@ -140,9 +145,9 @@ public class DownloadManager {
      * @param id 任务id
      */
     public void pause(String id) {
-        DownloadTask task = getDownloadTask(id);
+        DownLoadTask task = getDownloadTask(id);
         if (task != null) {
-            task.setDownloadStatus(DownloadStatus.DOWNLOAD_STATUS_PAUSE);
+            task.pause();
         }
     }
 
@@ -152,7 +157,7 @@ public class DownloadManager {
      * @param id 任务id
      */
     public void resume(String id) {
-        DownloadTask task = getDownloadTask(id);
+        DownLoadTask task = getDownloadTask(id);
         if (task != null) {
             addDownloadTask(task);
         }
@@ -164,12 +169,11 @@ public class DownloadManager {
      * @param id 任务id
      */
     public void cancel(String id) {
-        DownloadTask task = getDownloadTask(id);
+        DownLoadTask task = getDownloadTask(id);
         if (task != null) {
             mCurrentTaskList.remove(id);
             mFutureMap.remove(id);
             task.cancel();
-            task.setDownloadStatus(DownloadStatus.DOWNLOAD_STATUS_CANCEL);
         }
     }
 
@@ -178,9 +182,9 @@ public class DownloadManager {
      *
      * @param task
      */
-    public void updateDownloadTask(DownloadTask task) {
+    public void updateDownloadTask(DownLoadTask task) {
         if (task != null) {
-            DownloadTask currTask = getDownloadTask(task.getId());
+            DownLoadTask currTask = getDownloadTask(task.getId());
             if (currTask != null) {
                 mCurrentTaskList.put(task.getId(), task);
             }
@@ -193,14 +197,14 @@ public class DownloadManager {
      * @param id task id
      * @return
      */
-    public DownloadTask getDownloadTask(String id) {
-        DownloadTask currTask = mCurrentTaskList.get(id);
+    public DownLoadTask getDownloadTask(String id) {
+        DownLoadTask currTask = mCurrentTaskList.get(id);
         if (currTask == null) {
             // 从数据库中取出为完成的task
             DownloadEntity entity = mDownloadDao.load(id);
             if (entity != null) {
                 if (entity.getDownloadStatus() != DownloadStatus.DOWNLOAD_STATUS_COMPLETED) {
-                    currTask = parseEntity2Task(new DownloadTask.Builder().build(), entity);
+                    currTask = parseEntity2Task(new DownLoadTask.Builder().build(), entity);
                     // 放入task list中
                     mCurrentTaskList.put(id, currTask);
                 }
@@ -214,11 +218,11 @@ public class DownloadManager {
      *
      * @return
      */
-    public Map<String, DownloadTask> getAllDownloadTasks() {
+    public Map<String, DownLoadTask> getAllDownloadTasks() {
         if (mCurrentTaskList != null && mCurrentTaskList.size() <= 0) {
             List<DownloadEntity> entitys = mDownloadDao.loadAll();
             for (DownloadEntity entity : entitys) {
-                DownloadTask currTask = parseEntity2Task(new DownloadTask.Builder().build(), entity);
+                DownLoadTask currTask = parseEntity2Task(new DownLoadTask.Builder().build(), entity);
                 mCurrentTaskList.put(entity.getDownloadId(), currTask);
             }
         }
@@ -226,9 +230,9 @@ public class DownloadManager {
         return mCurrentTaskList;
     }
 
-    private DownloadTask parseEntity2Task(DownloadTask currTask, DownloadEntity entity) {
+    private DownLoadTask parseEntity2Task(DownLoadTask currTask, DownloadEntity entity) {
         if (entity != null && currTask != null) {
-            DownloadTask.Builder builder = new DownloadTask.Builder()//
+            DownLoadTask.Builder builder = new DownLoadTask.Builder()//
                 .setDownloadStatus(entity.getDownloadStatus())//
                 .setFileName(entity.getFileName())//
                 .setSaveDirPath(entity.getSaveDirPath())//
@@ -237,7 +241,7 @@ public class DownloadManager {
 
             currTask.setBuilder(builder);
             currTask.setCompletedSize(entity.getCompletedSize());//
-            currTask.setTotalSize(entity.getToolSize());
+            currTask.setTotalSize(entity.getTotalSize());
         }
         return currTask;
     }

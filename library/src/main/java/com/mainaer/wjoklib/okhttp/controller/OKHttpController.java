@@ -14,7 +14,7 @@ import com.mainaer.wjoklib.okhttp.IUrl;
 import com.mainaer.wjoklib.okhttp.OKBaseResponse;
 import com.mainaer.wjoklib.okhttp.OKHttpManager;
 import com.mainaer.wjoklib.okhttp.exception.OkHttpError;
-import com.mainaer.wjoklib.okhttp.utils.LoggerUtil;
+import com.mainaer.wjoklib.okhttp.utils.WLog;
 import com.mainaer.wjoklib.okhttp.utils.OkStringUtils;
 
 import java.io.IOException;
@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -42,7 +43,9 @@ import okhttp3.Response;
  */
 public abstract class OKHttpController<Listener> {
 
+    // 请求成功
     public static final int SUCCESS_CODE = 0x01;
+    // 网络请求失败
     public static final int ERROR_CODE = 0x02;
     protected Listener mListener;
     private Call mCall = null;
@@ -120,15 +123,14 @@ public abstract class OKHttpController<Listener> {
             this.mDataClazz = clazz;
 
             IUrl url = getUrl();
-            LoggerUtil.i("request url = " + url.getUrl());
+            WLog.i("request url = " + url.getUrl());
             // 获取请求方法
             int method = url.getMethod();
             Request.Builder builder = null;
             RequestBody requestBody = null;
             builder = new Request.Builder();
             switch (method) {
-                case Method.GET:// 默认请求方式
-                    // 获取请求体
+                case Method.GET:
                     bindBody(url, builder).get();
                     break;
                 case Method.POST:
@@ -168,7 +170,7 @@ public abstract class OKHttpController<Listener> {
             String body = getBody(input);
             url.setQuery(body);
             builder.url(url.getUrl());
-            LoggerUtil.i("get request url = " + url.getUrl());
+            WLog.i("get request url = " + url.getUrl());
             return builder;
         }
 
@@ -183,7 +185,7 @@ public abstract class OKHttpController<Listener> {
                 convertData(response);
             }
             else {
-                throw new NullPointerException("base response is null, please check your http response.");
+                sendMessage(new OkHttpError(new TimeoutException()), ERROR_CODE);
             }
         }
 
@@ -212,7 +214,7 @@ public abstract class OKHttpController<Listener> {
                     // 解析成BaseResponse中的data
                     String data = baseResponse.getData();
                     if (!TextUtils.isEmpty(data)) {
-                        LoggerUtil.i("response = " + body);
+                        WLog.i("response = " + body);
                         if (mDataItemClass != null && mDataClazz == null) {
                             out = mGson.fromJson(data, type(List.class, mDataItemClass));
                             if (out == null) {
@@ -250,18 +252,18 @@ public abstract class OKHttpController<Listener> {
             handler.sendMessage(msg);
         }
 
-        Handler handler = new Handler(Looper.getMainLooper()) {
+        Handler handler = new Handler(Looper.getMainLooper(), new Handler.Callback() {
             @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
+            public boolean handleMessage(Message msg) {
                 if (msg.what == SUCCESS_CODE) {
                     onSuccess((Output) msg.obj);
                 }
                 else if (msg.what == ERROR_CODE) {
                     onError((OkHttpError) msg.obj);
                 }
+                return true;
             }
-        };
+        });
 
         /**
          * Get parameter encoding
@@ -289,7 +291,7 @@ public abstract class OKHttpController<Listener> {
                     buffer.append(key).append("=").append(map.get(key)).append(" ,");
                     formBuilder.add(key, OkStringUtils.getRequestParamValue(map.get(key), getParamsEncoding()));
                 }
-                LoggerUtil.i("request body: " + buffer.deleteCharAt(buffer.toString().length() - 1));
+                WLog.i("request body: " + buffer.deleteCharAt(buffer.toString().length() - 1));
             }
             return formBuilder.build();
         }
@@ -323,15 +325,16 @@ public abstract class OKHttpController<Listener> {
             else {
                 body = OkStringUtils.getRequestParam(input, getParamsEncoding());
             }
-            LoggerUtil.i("request body: " + body);
+            WLog.i("request body: " + body);
             return body;
         }
+    
     }
-
+    
     /**
      * 在不需要的时候，取消请求
      */
-    public void onDestroy() {
+    public void cancel() {
         if (mCall != null && !mCall.isExecuted()) {
             try {
                 mCall.cancel();

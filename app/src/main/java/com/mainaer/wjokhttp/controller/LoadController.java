@@ -5,13 +5,11 @@ package com.mainaer.wjokhttp.controller;
 
 
 import com.mainaer.wjokhttp.comment.MyAppController;
-import com.mainaer.wjokhttp.model.LoadRequest;
-import com.mainaer.wjokhttp.model.LoadResponse;
+import com.mainaer.wjokhttp.model.WeatherRequest;
+import com.mainaer.wjokhttp.model.WeatherResponse;
 import com.mainaer.wjokhttp.url.URLConst;
 import com.mainaer.wjoklib.okhttp.IUrl;
 import com.mainaer.wjoklib.okhttp.exception.OkHttpError;
-
-import java.util.List;
 
 
 /**
@@ -26,16 +24,16 @@ public class LoadController extends MyAppController<LoadController.LoadListener>
         mListener = l;
     }
 
-    public void load(LoadRequest request) {
+    public void load(WeatherRequest request) {
         Task task = new Task();
-        task.load2List(request, LoadResponse.class);
+        task.load(request, WeatherResponse.class);
     }
 
     /**
      * 执行加载任务的task，其回调都是在主线程中调用
      * 需要加入请求参数LoadRequest和相应参数LoadResponse
      */
-    public class Task extends AppBaseTask<LoadRequest, List<LoadResponse>> {
+    public class Task extends AppBaseTask<WeatherRequest, WeatherResponse> {
 
         @Override
         public IUrl getUrl() {
@@ -44,7 +42,7 @@ public class LoadController extends MyAppController<LoadController.LoadListener>
         }
 
         @Override
-        public void onSuccess(List<LoadResponse> loadResponse) {
+        public void onSuccess(WeatherResponse loadResponse) {
             // 获得加载成功的相应数据，自动解析成LoadResponse
             mListener.onLoadSuccess(loadResponse);
         }
@@ -61,7 +59,7 @@ public class LoadController extends MyAppController<LoadController.LoadListener>
      */
     public interface LoadListener {
 
-        void onLoadSuccess(List<LoadResponse> loadResponse);
+        void onLoadSuccess(WeatherResponse loadResponse);
 
         void onLoadFail(OkHttpError e);
     }

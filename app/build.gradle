@@ -1,15 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    compileSdkVersion Integer.parseInt(compile_Sdk_Version)
+    buildToolsVersion build_Tools_Version
 
     defaultConfig {
-        applicationId "com.mainaer.wjokhttp"
-        minSdkVersion 14
-        targetSdkVersion 23
-        versionCode 1
-        versionName "1.0"
+        applicationId app_id
+        minSdkVersion Integer.parseInt(min_Sdk_Version)
+        targetSdkVersion Integer.parseInt(target_Sdk_Version)
+        versionCode Integer.parseInt(version_Code)
+        versionName version_Name
     }
     buildTypes {
         release {
@@ -21,7 +21,15 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.android.support:design:23.1.1'
+    compile 'com.android.support:appcompat-v7:24.0.0'
+    compile 'com.android.support:design:24.0.0'
     compile project(':library')
+
+    // chrome check database see http://facebook.github.io/stetho/
+    // chrome://inspect/#devices 可查看手机数据库和pref
+    // 如打开空白在hosts中添加
+    // 61.91.161.217 chrome-devtools-frontend.appspot.com
+    // 61.91.161.217 chrometophone.appspot.com
+    compile 'com.facebook.stetho:stetho:1.4.2'
+    compile 'com.android.support.constraint:constraint-layout:1.0.0-alpha7'
 }

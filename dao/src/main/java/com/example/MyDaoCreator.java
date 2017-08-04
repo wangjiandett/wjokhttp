@@ -14,14 +14,14 @@ public class MyDaoCreator {
         entity.setClassNameDao("DownloadDao");
         entity.setTableName("download");
         entity.addStringProperty("downloadId").primaryKey();
-        entity.addLongProperty("toolSize");
+        entity.addLongProperty("totalSize");
         entity.addLongProperty("completedSize");
         entity.addStringProperty("url");
         entity.addStringProperty("saveDirPath");
         entity.addStringProperty("fileName");
         entity.addIntProperty("downloadStatus");
         try {
-            new DaoGenerator().generateAll(schema,"E:\\git\\wjokhttp\\library\\src\\main\\java");//java目录的绝对地址
+            new DaoGenerator().generateAll(schema,"H:\\work\\wjokhttp\\library\\src\\main\\java");//java目录的绝对地址
         } catch (Exception e) {
             e.printStackTrace();
         }

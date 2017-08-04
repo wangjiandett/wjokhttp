@@ -15,7 +15,7 @@ public interface DownloadTaskListener {
      * @param percent
      * @param downloadTask
      */
-    void onDownloading(DownloadTask downloadTask, long completedSize, long totalSize, String percent);
+    void onDownloading(DownLoadTask downloadTask, long completedSize, long totalSize, int percent);
 
     /**
      * 下载暂停
@@ -25,14 +25,14 @@ public interface DownloadTaskListener {
      * @param totalSize
      * @param percent
      */
-    void onPause(DownloadTask downloadTask, long completedSize, long totalSize, String percent);
+    void onPause(DownLoadTask downloadTask, long completedSize, long totalSize, int percent);
 
     /**
      * 下载取消
      *
      * @param downloadTask
      */
-    void onCancel(DownloadTask downloadTask);
+    void onCancel(DownLoadTask downloadTask);
 
     /**
      * 下载成功
@@ -40,7 +40,7 @@ public interface DownloadTaskListener {
      * @param file
      * @param downloadTask
      */
-    void onDownloadSuccess(DownloadTask downloadTask, File file);
+    void onDownloadSuccess(DownLoadTask downloadTask, File file);
 
     /**
      * 下载失败
@@ -48,6 +48,6 @@ public interface DownloadTaskListener {
      * @param downloadTask
      * @param errorCode    {@link DownloadStatus}
      */
-    void onError(DownloadTask downloadTask, int errorCode);
+    void onError(DownLoadTask downloadTask, int errorCode);
 
 }

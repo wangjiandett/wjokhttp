@@ -1,10 +1,7 @@
 package com.mainaer.wjokhttp.ui;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -13,20 +10,20 @@ import com.mainaer.wjokhttp.R;
 import com.mainaer.wjokhttp.comment.OkUtils;
 import com.mainaer.wjokhttp.controller.LoadController;
 import com.mainaer.wjokhttp.controller.UploadController;
-import com.mainaer.wjokhttp.model.LoadRequest;
 import com.mainaer.wjokhttp.model.LoadResponse;
 import com.mainaer.wjokhttp.model.UploadResponse;
+import com.mainaer.wjokhttp.model.WeatherRequest;
+import com.mainaer.wjokhttp.model.WeatherResponse;
 import com.mainaer.wjokhttp.ui.view.H5Activity;
 import com.mainaer.wjoklib.okhttp.exception.OkHttpError;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * github地址项目地址 https://github.com/wangjiandett/wjokhttp
  */
 public class MainActivity extends AppCompatActivity implements LoadController.LoadListener, View.OnClickListener,
-    UploadController.UploadListener {
+    UploadController.UploadListener{
 
     ListView mListview;
     LoadController mLoadController;
@@ -38,18 +35,6 @@ public class MainActivity extends AppCompatActivity implements LoadController.Lo
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null)
-                    .show();
-            }
-        });
-
         initView();
 
         initData();
@@ -81,14 +66,15 @@ public class MainActivity extends AppCompatActivity implements LoadController.Lo
     // 加载列表
     private void initData() {
         // create request and load data
-        LoadRequest request = new LoadRequest();
+        WeatherRequest request = new WeatherRequest();
+        request.city = "北京";
         mLoadController.load(request);
     }
 
     @Override
-    public void onLoadSuccess(List<LoadResponse> loadResponse) {
+    public void onLoadSuccess(WeatherResponse loadResponse) {
         // set data to the ui
-        mMyAdapter.setList(loadResponse);
+        mMyAdapter.setList(loadResponse.forecast);
         mMyAdapter.notifyDataSetChanged();
     }
 
@@ -114,17 +100,20 @@ public class MainActivity extends AppCompatActivity implements LoadController.Lo
         File file = new File("file_path");
         mUploadController.upload(file);
     }
-
-
-    // 上传回调
+    
+    
     @Override
-    public void upLoadSuccess(UploadResponse uploadResponse) {
-
+    public void onSuccess(UploadResponse response) {
+        
     }
-
+    
     @Override
-    public void upLoadFail(OkHttpError e) {
-        // toast 错误信息
-        OkUtils.toastError(this, e);
+    public void onFailure(OkHttpError error) {
+        
+    }
+    
+    @Override
+    public void onProgress(long total, int progress) {
+        
     }
 }

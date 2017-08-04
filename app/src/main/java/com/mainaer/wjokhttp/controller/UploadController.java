@@ -6,6 +6,7 @@ package com.mainaer.wjokhttp.controller;
 import com.mainaer.wjokhttp.model.UploadResponse;
 import com.mainaer.wjoklib.okhttp.IUrl;
 import com.mainaer.wjoklib.okhttp.controller.OKUploadController;
+import com.mainaer.wjoklib.okhttp.controller.ProgressListener;
 import com.mainaer.wjoklib.okhttp.exception.OkHttpError;
 
 import java.io.File;
@@ -27,7 +28,9 @@ public class UploadController extends OKUploadController<UploadController.Upload
 
     public void upload(File file) {
         UpLoadTask task = new UpLoadTask();
-        task.load(file, UploadResponse.class);
+        HashMap<String ,Object> map = new HashMap<>();
+        map.put("file", file);
+        task.load(map, UploadResponse.class);
     }
 
     private class UpLoadTask extends BaseUpLoadTask<UploadResponse> {
@@ -38,27 +41,17 @@ public class UploadController extends OKUploadController<UploadController.Upload
 
         @Override
         protected void onSuccess(UploadResponse baseResponse) {
-            mListener.upLoadSuccess(baseResponse);
+            mListener.onSuccess(baseResponse);
         }
 
         @Override
         protected void onError(OkHttpError error) {
-            mListener.upLoadFail(error);
-        }
-
-        @Override
-        protected void addParams(HashMap<String, String> params) {
-            params.put("client","Android");
-            params.put("uid","1061");
-            params.put("token","1911173227afe098143caf4d315a436d");
-            params.put("uuid","A000005566DA77");
+            mListener.onFailure(error);
         }
     }
-
-
-    public interface UploadListener {
-        void upLoadSuccess(UploadResponse uploadResponse);
-
-        void upLoadFail(OkHttpError msg);
+    
+    public interface UploadListener extends ProgressListener<UploadResponse, OkHttpError> {
+        
     }
+    
 }

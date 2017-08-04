@@ -16,4 +16,11 @@
     <string name="error_loading_retry">请点击重新加载</string>
     <string name="error_loading_with_retry">加载失败, 请点击重试</string>
 
+
+    <string name="weather_date">日期：</string>
+    <string name="weather_wendu">温度：</string>
+    <string name="weather_fengli">风力：</string>
+    <string name="weather_cloud">天气：</string>
+
+
 </resources>

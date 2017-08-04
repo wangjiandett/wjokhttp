@@ -1,8 +1,11 @@
 package com.mainaer.wjoklib.okhttp.utils;
 
+import android.text.TextUtils;
+
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.net.URLEncoder;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 
@@ -114,4 +117,30 @@ public class OkStringUtils {
         }
         return map;
     }
+    
+    public static String getDownLoadPercent(long completedSize, long totalSize) {
+        String baifenbi = "0";// 接受百分比的值
+        double baiy = completedSize * 1.0;
+        double baiz = totalSize * 1.0;
+        // 防止分母为0出现NoN
+        if (baiz > 0) {
+            double fen = (baiy / baiz) * 100;
+            //NumberFormat nf = NumberFormat.getPercentInstance();
+            //nf.setMinimumFractionDigits(2); //保留到小数点后几位
+            // 百分比格式，后面不足2位的用0补齐
+            //baifenbi = nf.format(fen);
+            //注释掉的也是一种方法
+            DecimalFormat df1 = new DecimalFormat("0");//0.00
+            baifenbi = df1.format(fen);
+        }
+        return baifenbi;
+    }
+    
+    public static String getFileNameFromUrl(String url) {
+        if (!TextUtils.isEmpty(url)) {
+            return url.substring(url.lastIndexOf("/") + 1);
+        }
+        return String.valueOf("ok_down_"+System.currentTimeMillis());
+    }
+    
 }

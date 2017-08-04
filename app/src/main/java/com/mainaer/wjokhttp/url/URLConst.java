@@ -33,14 +33,14 @@ public final class URLConst {
     }
 
     // get使用url
-    public static final String BASE = "http://api.1-blog.com/biz/bizserver/news/";
+    public static final String BASE = "http://www.sojson.com/open/api/weather/";
     // 下载使用url
     public static String DOWNLOADURL = "http://msoftdl.360.cn/mobilesafe/shouji360/360safesis/360StrongBox_1.0.9.1008"
         + ".apk";
 
 
     public interface Product{
-        Url PRODUCTLIST = new Url("list.do").get();
+        Url PRODUCTLIST = new Url("json.shtml").get();
     }
 
     public static class Url implements IUrl {

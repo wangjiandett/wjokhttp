@@ -16,11 +16,10 @@
 package com.mainaer.wjokhttp.comment;
 
 import android.content.Context;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.mainaer.wjokhttp.R;
 import com.mainaer.wjoklib.okhttp.exception.OkHttpError;
+import com.mainaer.wjoklib.okhttp.utils.WToast;
 
 /**
  * Okhttp Utils
@@ -29,7 +28,7 @@ import com.mainaer.wjoklib.okhttp.exception.OkHttpError;
  * @date 2015年11月16日
  */
 public final class OkUtils {
-
+    
     /**
      * private constructor
      */
@@ -38,13 +37,9 @@ public final class OkUtils {
     
     public static void toastError(Context context, OkHttpError error) {
         String msg = getError(context, error);
-        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+        WToast.showToast(context, msg);
     }
     
-    public static void showError(TextView tv, OkHttpError error) {
-        tv.setText(getError(tv.getContext(), error));
-    }
-
     // 自定义异常
     private static String getError(Context context, OkHttpError error) {
         int type = error.getType();
@@ -57,6 +52,10 @@ public final class OkUtils {
         }
         else if (type == OkHttpError.TYPE_PARSE) {
             resId = R.string.error_type_parse;
+        }
+        else if (type == OkHttpError.TYPE_DIY_ERROR) {
+            // 服务端自定义的错误提示
+            return error.getMessage();
         }
         else {
             resId = R.string.error_type_unknown;

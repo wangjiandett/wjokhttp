@@ -14,9 +14,9 @@ import android.widget.TextView;
 
 import com.mainaer.wjokhttp.R;
 import com.mainaer.wjoklib.okhttp.download.DownloadManager;
-import com.mainaer.wjoklib.okhttp.download.DownloadTask;
+import com.mainaer.wjoklib.okhttp.download.DownLoadTask;
 import com.mainaer.wjoklib.okhttp.download.DownloadTaskListener;
-import com.mainaer.wjoklib.okhttp.utils.LoggerUtil;
+import com.mainaer.wjoklib.okhttp.utils.WLog;
 
 import java.io.File;
 
@@ -48,8 +48,7 @@ public class DownLoadActivity extends AppCompatActivity implements View.OnClickL
 
     private String url_360 = "http://msoftdl.360.cn/mobilesafe/shouji360/360safesis/360StrongBox_1.0.9.1008.apk";
 
-    private String url_qq = "http://221.228.67.156/dd.myapp.com/16891/62B928C30FE677EDEEA9C504486444E9"
-        + ".apk?mkey=5736f6098218f3cf&f=1b58&c=0&fsname=com.tencent.mobileqq_6.3.3_358.apk&p=.apk";
+    private String url_qq = "http://gdown.baidu.com/data/wisegame/41a04ccb443cd61a/QQ_692.apk";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,12 +125,12 @@ public class DownLoadActivity extends AppCompatActivity implements View.OnClickL
     }
 
     private void download360() {
-        DownloadTask task = new DownloadTask.Builder().setId(URL_360_ID).setUrl(url_360).setListener(this).build();
+        DownLoadTask task = new DownLoadTask.Builder().setId(URL_360_ID).setUrl(url_360).setListener(this).build();
         downloadManager.addDownloadTask(task);
     }
 
     private void downloadQQ() {
-        DownloadTask task = new DownloadTask.Builder().setId(URL_QQ_ID).setUrl(url_qq).setListener(this).build();
+        DownLoadTask task = new DownLoadTask.Builder().setId(URL_QQ_ID).setUrl(url_qq).setListener(this).build();
         downloadManager.addDownloadTask(task);
     }
 
@@ -142,23 +141,23 @@ public class DownLoadActivity extends AppCompatActivity implements View.OnClickL
 
     //=========================================================================
     @Override
-    public void onDownloading(DownloadTask downloadTask, long completedSize, long totalSize, final String percent) {
-        LoggerUtil.i("onDownloading completedSize=" + completedSize + " ,totalSize=" + totalSize + " ,percent=" +
+    public void onDownloading(DownLoadTask downloadTask, long completedSize, long totalSize, final int percent) {
+        WLog.i("onDownloading completedSize=" + completedSize + " ,totalSize=" + totalSize + " ,percent=" +
             percent);
         if (downloadTask.getId().equals(URL_360_ID)) {
-            mProgressBar.setProgress(Integer.parseInt(percent));
+            mProgressBar.setProgress(percent);
             mTvStatus.setText("正在下载..." + percent + "%");
         }
         else {
-            mProgressBar1.setProgress(Integer.parseInt(percent));
+            mProgressBar1.setProgress(percent);
             mTvStatus1.setText("正在下载..." + percent + "%");
         }
 
     }
 
     @Override
-    public void onPause(DownloadTask downloadTask, long completedSize, long totalSize, String percent) {
-        LoggerUtil.i("onPause=" + completedSize + " ,totalSize=" + totalSize + " ,percent=" + percent);
+    public void onPause(DownLoadTask downloadTask, long completedSize, long totalSize, int percent) {
+        WLog.i("onPause=" + completedSize + " ,totalSize=" + totalSize + " ,percent=" + percent);
         if (downloadTask.getId().equals(URL_360_ID)) {
             mTvStatus.setText("下载已暂停,已下载：" + percent + "%");
         }
@@ -168,8 +167,8 @@ public class DownLoadActivity extends AppCompatActivity implements View.OnClickL
     }
 
     @Override
-    public void onCancel(DownloadTask downloadTask) {
-        LoggerUtil.i("onCancel");
+    public void onCancel(DownLoadTask downloadTask) {
+        WLog.i("onCancel");
         if (downloadTask.getId().equals(URL_360_ID)) {
             mTvStatus.setText("下载已取消");
             mProgressBar.setProgress(0);
@@ -181,8 +180,8 @@ public class DownLoadActivity extends AppCompatActivity implements View.OnClickL
     }
 
     @Override
-    public void onDownloadSuccess(DownloadTask downloadTask, File file) {
-        LoggerUtil.i("onDownloadSuccess file=" + file.getAbsolutePath());
+    public void onDownloadSuccess(DownLoadTask downloadTask, File file) {
+        WLog.i("onDownloadSuccess file=" + file.getAbsolutePath());
         if (downloadTask.getId().equals(URL_360_ID)) {
             mTvStatus.setText("下载完成 path：" + file.getAbsolutePath());
         }
@@ -194,8 +193,8 @@ public class DownLoadActivity extends AppCompatActivity implements View.OnClickL
     }
 
     @Override
-    public void onError(DownloadTask downloadTask, int errorCode) {
-        LoggerUtil.i("onError errorCode=" + errorCode);
+    public void onError(DownLoadTask downloadTask, int errorCode) {
+        WLog.i("onError errorCode=" + errorCode);
         if (downloadTask.getId().equals(url_360)) {
             mTvStatus.setText("下载失败errorCode=" + errorCode);
         }else{

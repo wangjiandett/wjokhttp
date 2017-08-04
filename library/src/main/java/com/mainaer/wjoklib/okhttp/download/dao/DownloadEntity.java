@@ -7,7 +7,7 @@ package com.mainaer.wjoklib.okhttp.download.dao;
 public class DownloadEntity {
 
     private String downloadId;
-    private Long toolSize;
+    private Long totalSize;
     private Long completedSize;
     private String url;
     private String saveDirPath;
@@ -21,9 +21,9 @@ public class DownloadEntity {
         this.downloadId = downloadId;
     }
 
-    public DownloadEntity(String downloadId, Long toolSize, Long completedSize, String url, String saveDirPath, String fileName, Integer downloadStatus) {
+    public DownloadEntity(String downloadId, Long totalSize, Long completedSize, String url, String saveDirPath, String fileName, Integer downloadStatus) {
         this.downloadId = downloadId;
-        this.toolSize = toolSize;
+        this.totalSize = totalSize;
         this.completedSize = completedSize;
         this.url = url;
         this.saveDirPath = saveDirPath;
@@ -39,12 +39,12 @@ public class DownloadEntity {
         this.downloadId = downloadId;
     }
 
-    public Long getToolSize() {
-        return toolSize;
+    public Long getTotalSize() {
+        return totalSize;
     }
 
-    public void setToolSize(Long toolSize) {
-        this.toolSize = toolSize;
+    public void setTotalSize(Long totalSize) {
+        this.totalSize = totalSize;
     }
 
     public Long getCompletedSize() {

@@ -5,6 +5,7 @@ package com.mainaer.wjokhttp.ui;
 
 import android.app.Application;
 
+import com.facebook.stetho.Stetho;
 import com.mainaer.wjokhttp.model.BaseResponse;
 import com.mainaer.wjoklib.okhttp.OKHttpConfig;
 import com.mainaer.wjoklib.okhttp.OKHttpManager;
@@ -25,6 +26,9 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        // 数据库调试工具 stetho
+        Stetho.initializeWithDefaults(this);
+        
         // 自定义缓存目录和大小
         File cacheFile = new File(getCacheDir(), "okcache");
         Cache cache = new Cache(cacheFile, 100 * 1024 * 1024);// 100mb

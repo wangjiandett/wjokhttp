@@ -36,10 +36,10 @@ public final class OKHttpManager {
      * 默认链接，读取，写入超时时间
      */
     public static final long DEFAULT_SECONDS = 10;
-
+    
+    private static OKHttpManager mInstance;
     private Context mContext;
     private OKHttpConfig mConfig;
-    private static OKHttpManager mInstance;
     private OkHttpClient mOkHttpClient;
     private OkHttpClient.Builder mBuilder;
 

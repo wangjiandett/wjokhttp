@@ -32,13 +32,18 @@ public class OkHttpError extends Exception {
     public static final int TYPE_TIMEOUT = 0x02;//连接超时
     public static final int TYPE_PARSE = 0x03;// 数据解析错误
     public static final int TYPE_ERROR = 0x04;// 其他原因数据解析失败
-
-
+    public static final int TYPE_DIY_ERROR = 0x05;// 自定义错误类型
+    
+    
     public int mErrorType;
-
+    
     public OkHttpError(Exception error) {
         super(error);
         initType();
+    }
+    
+    public OkHttpError(String msg) {
+        super(msg);
     }
     
     private void initType() {
@@ -57,6 +62,9 @@ public class OkHttpError extends Exception {
         }
         else if (error instanceof IOException) {
             mErrorType = TYPE_PARSE;
+        }
+        else if (error instanceof OkHttpError) {
+            mErrorType = TYPE_DIY_ERROR;
         }
         else if (error instanceof Exception) {
             mErrorType = TYPE_ERROR;

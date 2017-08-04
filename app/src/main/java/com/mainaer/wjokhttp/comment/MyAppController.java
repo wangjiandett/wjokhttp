@@ -7,6 +7,7 @@ package com.mainaer.wjokhttp.comment;
 import com.mainaer.wjokhttp.model.BaseResponse;
 import com.mainaer.wjoklib.okhttp.OKBaseResponse;
 import com.mainaer.wjoklib.okhttp.controller.OKHttpController;
+import com.mainaer.wjoklib.okhttp.exception.OkHttpError;
 
 /**
  * 类/接口描述
@@ -16,7 +17,8 @@ import com.mainaer.wjoklib.okhttp.controller.OKHttpController;
  */
 public abstract class MyAppController<Listener> extends OKHttpController<Listener> {
 
-
+    public static final String SUCCESS_CODE = "200";
+    
     public MyAppController() {
         super();
     }
@@ -32,9 +34,11 @@ public abstract class MyAppController<Listener> extends OKHttpController<Listene
         public boolean onInterceptor(OKBaseResponse response) {
             if (response instanceof BaseResponse) {
                 BaseResponse resp = (BaseResponse) response;
-                if (!"000000".equals(resp.getStatus())) {//101表示成功
-                    // 主线程中调用onError,不能直接调用onError
-                    sendMessage(resp.getMessage(), ERROR_CODE);
+                // 此处需要自定义成功的code,也可不用重写onInterceptor，默认返回false
+                // 此处使用200表示成功
+                if (!SUCCESS_CODE.equals(resp.getStatus())) {
+                    // 主线程中调用onError
+                    sendMessage(new OkHttpError(resp.getMessage()), ERROR_CODE);
                     return true;
                 }
             }

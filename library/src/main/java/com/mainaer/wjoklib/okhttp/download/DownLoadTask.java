@@ -1,21 +1,22 @@
 /*
- * Copyright 2014-2016 wjokhttp
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Copyright 2014-2016 wjokhttp.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
  */
 package com.mainaer.wjoklib.okhttp.download;
 
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -23,17 +24,19 @@ import android.text.TextUtils;
 
 import com.mainaer.wjoklib.okhttp.download.dao.DownloadDao;
 import com.mainaer.wjoklib.okhttp.download.dao.DownloadEntity;
-import com.mainaer.wjoklib.okhttp.utils.LoggerUtil;
+import com.mainaer.wjoklib.okhttp.utils.FileUtil;
+import com.mainaer.wjoklib.okhttp.utils.WLog;
 
-import java.io.BufferedInputStream;
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
-import java.text.DecimalFormat;
 
+import static com.mainaer.wjoklib.okhttp.utils.FileUtil.close;
+import static com.mainaer.wjoklib.okhttp.utils.OkStringUtils.getFileNameFromUrl;
+import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -45,161 +48,158 @@ import okhttp3.ResponseBody;
  * @author wangjian
  * @date 2016/5/13 .
  */
-public class DownloadTask implements Runnable {
-
+public class DownLoadTask implements Runnable {
+    
     private static String FILE_MODE = "rwd";
     private OkHttpClient mClient;
-
+    private Call call;
+    
     private RandomAccessFile mDownLoadFile;
     private DownloadEntity dbEntity;
     private DownloadDao mDownloadDao;
     private DownloadTaskListener mListener;
-
+    
     private Builder mBuilder;
     private String id;// task id
     private long totalSize;// filesize
     private long completedSize; //  Download section has been completed
     private String url;// file url
     private String saveDirPath;// file save path
-    private double updateSize; // The database is updated 100 times
     private String fileName; // File name when saving
     private int downloadStatus;
-
+    
+    private int percent;
     private int errorCode;
-
-    private DownloadTask(Builder builder) {
-        mBuilder = builder;
-        mClient = new OkHttpClient();
+    
+    private DownLoadTask(Builder builder) {
+        this.mBuilder = builder;
         this.id = mBuilder.id;
         this.url = mBuilder.url;
         this.saveDirPath = mBuilder.saveDirPath;
         this.fileName = mBuilder.fileName;
         this.downloadStatus = mBuilder.downloadStatus;
         this.mListener = mBuilder.listener;
-        // 以kb为计算单位
     }
-
+    
     @Override
     public void run() {
-        InputStream inputStream = null;
-        BufferedInputStream bis = null;
         try {
             // 数据库中加载数据
             dbEntity = mDownloadDao.load(id);
             if (dbEntity != null) {
                 completedSize = dbEntity.getCompletedSize();
-                totalSize = dbEntity.getToolSize();
+                totalSize = dbEntity.getTotalSize();
             }
-
+            
             // 获得文件路径
-            String filepath = getFilePath();
+            String filepath = getDownLoadFilePath().getAbsolutePath();
             // 获得下载保存文件
             mDownLoadFile = new RandomAccessFile(filepath, FILE_MODE);
-
+            
+            // 获得本地下载的文件大小
             long fileLength = mDownLoadFile.length();
-            if (fileLength < completedSize) {
-                completedSize = mDownLoadFile.length();
-            }
-            // 下载完成，更新数据库数据
-            if (fileLength != 0 && totalSize <= fileLength) {
+            // 本地文件中已经下载完成
+            if (fileLength > 0 && totalSize == fileLength) {
                 downloadStatus = DownloadStatus.DOWNLOAD_STATUS_COMPLETED;
-                totalSize = completedSize = fileLength;
-                dbEntity = new DownloadEntity(id, totalSize, totalSize, url, saveDirPath, fileName, downloadStatus);
-                mDownloadDao.insertOrReplace(dbEntity);
-                LoggerUtil.i("=====totalSize===== " + totalSize);
-                // 执行finally中的回调
+                completedSize = fileLength;
+                totalSize = fileLength;
+                percent = 100;
+                WLog.d("totalSize=" + totalSize + " ,completedSize=" + completedSize + " ,downloadStatus="
+                    + downloadStatus);
+                // 执行回调
+                onCallBack();
                 return;
             }
-
-            // 开始下载
-            Request request = new Request.Builder().url(url).header("RANGE",
-                "bytes=" + completedSize + "-") // Http value set breakpoints RANGE
+            
+            // ============开始下载==================
+            Request request = new Request.Builder().url(url)//
+                .header("RANGE", "bytes=" + completedSize + "-") // Http value set breakpoints RANGE
                 .build();
             // 文件跳转到指定位置开始写入
             mDownLoadFile.seek(completedSize);
-            Response response = mClient.newCall(request).execute();
-            ResponseBody responseBody = response.body();
-            if (responseBody != null) {
-                downloadStatus = DownloadStatus.DOWNLOAD_STATUS_DOWNLOADING;
-                //onCallBack();
-                if (totalSize <= 0) {
-                    totalSize = responseBody.contentLength();
+            
+            call = mClient.newCall(request);
+            call.enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    error();
                 }
-
-                updateSize = totalSize / 100;
-
-                // 获得文件流
-                inputStream = responseBody.byteStream();
-                bis = new BufferedInputStream(inputStream);
-                byte[] buffer = new byte[2 * 1024];
-                int length = 0;
-                int buffOffset = 0;
-                // 开始下载数据库中插入下载信息
-                if (dbEntity == null) {
-                    dbEntity = new DownloadEntity(id, totalSize, 0L, url, saveDirPath, fileName, downloadStatus);
-                    mDownloadDao.insertOrReplace(dbEntity);
-                }
-                while ((length = bis.read(buffer)) > 0 && downloadStatus != DownloadStatus.DOWNLOAD_STATUS_CANCEL
-                    && downloadStatus != DownloadStatus.DOWNLOAD_STATUS_PAUSE) {
-                    mDownLoadFile.write(buffer, 0, length);
-                    completedSize += length;
-                    buffOffset += length;
-
-                    LoggerUtil.i("completedSize=" + completedSize + " ,totalSize=" +
-                        totalSize + " ," + "" + "Status=" + downloadStatus);
-                    // 下载多少触发一次回调，更新一次数据库
-                    // 以kb计算
-                    if (buffOffset >= updateSize) {
-                        // Update download information database
-                        buffOffset = 0;
-                        // 支持断点续传时，在往数据库中保存下载信息
-                        // 此处会频繁更新数据库
-                        // dbEntity.setCompletedSize(completedSize);
-                        // mDownloadDao.update(dbEntity);
-                        //onDownloading 回调
+                
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    ResponseBody body = response.body();
+                    if (body != null) {
+                        // 更新回调下载状态
+                        downloadStatus = DownloadStatus.DOWNLOAD_STATUS_DOWNLOADING;
                         onCallBack();
+                        // 开始下载
+                        readAndSave2File(body.byteStream(), body.contentLength());
                     }
                 }
-
-                //onDownloading;
-                // 防止最后一次不足UPDATE_SIZE，导致percent无法达到100%
-                onCallBack();
-            }
+            });
         } catch (FileNotFoundException e) {
             // file not found
-            e.printStackTrace();
-            downloadStatus = DownloadStatus.DOWNLOAD_STATUS_ERROR;
-            errorCode = DownloadStatus.DOWNLOAD_ERROR_FILE_NOT_FOUND;
+            WLog.e(e.getMessage());
+            error();
         } catch (IOException e) {
             // io exception
-            e.printStackTrace();
-            downloadStatus = DownloadStatus.DOWNLOAD_STATUS_ERROR;
-            errorCode = DownloadStatus.DOWNLOAD_ERROR_IO_ERROR;
-        } finally {
-            if (isDownloadFinish()) {
-                onCallBack();
-            }
-
-            // 下载后新数据库
-            if (dbEntity != null) {
-                dbEntity.setCompletedSize(completedSize);
-                dbEntity.setDownloadStatus(downloadStatus);
-                mDownloadDao.update(dbEntity);
-            }
-
-            // 回收资源
-            if (bis != null) {
-                close(bis);
-            }
-            if (inputStream != null) {
-                close(inputStream);
-            }
-            if (mDownLoadFile != null) {
-                close(mDownLoadFile);
-            }
+            WLog.e(e.getMessage());
+            error();
         }
     }
-
+    
+    private void readAndSave2File(InputStream inputStream, final long contentLength) throws IOException {
+        byte[] buf = new byte[2048];
+        int length = 0;
+        try {
+            long sum = completedSize;
+            float times = 0;
+            
+            // contentLength 在暂停后再次启动会从断点后开始计算，会小于原始的值
+            // 所以只能在第一次加载的时候保存
+            if (totalSize <= 0) {
+                totalSize = contentLength;
+            }
+            
+            while ((length = inputStream.read(buf)) != -1) {
+                // 如果不是正在下载状态，则停止任务
+                if (downloadStatus != DownloadStatus.DOWNLOAD_STATUS_DOWNLOADING) {
+                    return;
+                }
+                
+                sum += length;
+                mDownLoadFile.write(buf, 0, length);
+                
+                completedSize = sum;
+                float prgress = (float) (completedSize * 100 / totalSize);
+                // WLog.d("completedSize=" + completedSize + " ,prgress=" + prgress);
+                // 更新进度，回调100次
+                if (prgress - times >= 1) {
+                    times = prgress;
+                    // 更新状态
+                    downloadStatus = DownloadStatus.DOWNLOAD_STATUS_DOWNLOADING;
+                    // 更新百分比
+                    percent = (int) prgress;
+                    onCallBack();
+                }
+            }
+        } catch (Exception e) {
+            WLog.e(e.toString());
+        } finally {
+            WLog.d("completedSize=" + completedSize);
+            // 回收资源
+            close(inputStream);
+            close(mDownLoadFile);
+            
+            // 判断是否下载完成，更新下载状态
+            isDownloadFinish();
+            // 最终都会执行，数据库更新
+            insertOrUpdateDB();
+            // 回调一次
+            onCallBack();
+        }
+    }
+    
     private boolean isDownloadFinish() {
         boolean finish = false;
         if (totalSize > 0 && completedSize > 0 && totalSize == completedSize) {
@@ -208,30 +208,86 @@ public class DownloadTask implements Runnable {
         }
         return finish;
     }
-
+    
     /**
-     * 删除数据库文件和已经下载的文件
+     * 更新数据库操作
+     */
+    private void insertOrUpdateDB() {
+        if (dbEntity == null) {
+            dbEntity = new DownloadEntity(id, totalSize, completedSize, url, saveDirPath, fileName, downloadStatus);
+        }
+        else {
+            dbEntity.setCompletedSize(completedSize);
+            dbEntity.setDownloadStatus(downloadStatus);
+        }
+        
+        mDownloadDao.insertOrReplace(dbEntity);
+        
+        WLog.d("totalSize=" + dbEntity.getTotalSize() + " ,completedSize=" + dbEntity.getCompletedSize()
+            + " ,downloadStatus=" + dbEntity.getDownloadStatus());
+    }
+    
+    /**
+     * error 事件处理
+     */
+    private void error() {
+        downloadStatus = DownloadStatus.DOWNLOAD_STATUS_ERROR;
+        errorCode = DownloadStatus.DOWNLOAD_ERROR_IO_ERROR;
+        onCallBack();
+    }
+    
+    /**
+     * 取消下载
      */
     public void cancel() {
-        mListener.onCancel(DownloadTask.this);
+        downloadStatus = DownloadStatus.DOWNLOAD_STATUS_CANCEL;
+        doCancelClear();
+        cancelRequest();
+        onCallBack();
+    }
+    
+    /**
+     * 暂停下载
+     */
+    public void pause() {
+        downloadStatus = DownloadStatus.DOWNLOAD_STATUS_PAUSE;
+        onCallBack();
+    }
+    
+    /**
+     * 取消下载请求
+     */
+    private void cancelRequest() {
+        if (call != null) {
+            if (!call.isCanceled()) {
+                call.cancel();
+            }
+        }
+    }
+    
+    /**
+     * 删除本地文件和数据库数据
+     */
+    private void doCancelClear() {
         if (dbEntity != null) {
             mDownloadDao.delete(dbEntity);
-            File temp = new File(getFilePath());
+            File temp = getDownLoadFilePath();
             if (temp.exists()) {
                 temp.delete();
             }
         }
     }
-
+    
     /**
      * 分发回调事件到ui层
      */
     private void onCallBack() {
+        // 发送当前下载状态
         mHandler.sendEmptyMessage(downloadStatus);
         // 同步manager中的task信息
         DownloadManager.getInstance().updateDownloadTask(this);
     }
-
+    
     Handler mHandler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
@@ -239,151 +295,107 @@ public class DownloadTask implements Runnable {
             switch (code) {
                 // 下载失败
                 case DownloadStatus.DOWNLOAD_STATUS_ERROR:
-                    mListener.onError(DownloadTask.this, errorCode);
+                    mListener.onError(DownLoadTask.this, errorCode);
                     break;
                 // 正在下载
                 case DownloadStatus.DOWNLOAD_STATUS_DOWNLOADING:
-                    mListener.onDownloading(DownloadTask.this, completedSize, totalSize, getDownLoadPercent());
+                    mListener.onDownloading(DownLoadTask.this, completedSize, totalSize, percent);
                     break;
                 // 取消
                 case DownloadStatus.DOWNLOAD_STATUS_CANCEL:
-                    cancel();
+                    mListener.onCancel(DownLoadTask.this);
                     break;
                 // 完成
                 case DownloadStatus.DOWNLOAD_STATUS_COMPLETED:
-                    mListener.onDownloadSuccess(DownloadTask.this, new File(getFilePath()));
+                    mListener.onDownloadSuccess(DownLoadTask.this, getDownLoadFilePath());
                     break;
                 // 停止
                 case DownloadStatus.DOWNLOAD_STATUS_PAUSE:
-                    mListener.onPause(DownloadTask.this, completedSize, totalSize, getDownLoadPercent());
+                    mListener.onPause(DownLoadTask.this, completedSize, totalSize, percent);
                     break;
             }
         }
     };
-
-    private String getDownLoadPercent() {
-        String baifenbi = "0";// 接受百分比的值
-        double baiy = completedSize * 1.0;
-        double baiz = totalSize * 1.0;
-        // 防止分母为0出现NoN
-        if (baiz > 0) {
-            double fen = (baiy / baiz) * 100;
-            //NumberFormat nf = NumberFormat.getPercentInstance();
-            //nf.setMinimumFractionDigits(2); //保留到小数点后几位
-            // 百分比格式，后面不足2位的用0补齐
-            //baifenbi = nf.format(fen);
-            //注释掉的也是一种方法
-            DecimalFormat df1 = new DecimalFormat("0");//0.00
-            baifenbi = df1.format(fen);
-        }
-        return baifenbi;
-    }
-
-    private String getFilePath() {
+    
+    private File getDownLoadFilePath() {
+        File file = FileUtil.getDownLoadDir();
+        String parentDir = file.getAbsolutePath();
         // 获得文件名
-        if (!TextUtils.isEmpty(fileName)) {
-        }
-        else {
-            fileName = getFileNameFromUrl(url);
-        }
-
-        if (!TextUtils.isEmpty(saveDirPath)) {
-            if (!saveDirPath.endsWith("/")) {
-                saveDirPath = saveDirPath + "/";
-            }
-        }
-        else {
-            saveDirPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/wjokhttp/download/";
-        }
-
-        File file = new File(saveDirPath);
-        if (!file.exists()) {
-            file.mkdirs();
-        }
-
-        String filepath = saveDirPath + fileName;
-        return filepath;
+        String filename = !TextUtils.isEmpty(fileName) ? fileName : getFileNameFromUrl(url);
+        File downFile = new File(parentDir, filename);
+        return downFile;
     }
-
-    private String getFileNameFromUrl(String url) {
-        if (!TextUtils.isEmpty(url)) {
-            return url.substring(url.lastIndexOf("/") + 1);
+    
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof DownLoadTask){
+            DownLoadTask task = (DownLoadTask) obj;
+            return task.getId().equals(this.getId());
         }
-        return System.currentTimeMillis() + "";
+        return super.equals(obj);
     }
-
-    private void close(Closeable closeable) {
-        try {
-            closeable.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
+    
+    //=============================================================
+    
     public void setDownloadDao(DownloadDao mDownloadDao) {
         this.mDownloadDao = mDownloadDao;
     }
-
-    public void setClient(OkHttpClient mClient) {
-        this.mClient = mClient;
-    }
-
+    
     public Builder getBuilder() {
         return mBuilder;
     }
-
+    
     public void setBuilder(Builder builder) {
         this.mBuilder = builder;
     }
-
+    
     public String getId() {
-        if (!TextUtils.isEmpty(id)) {
-        }
-        else {
-            id = url;
-        }
         return id;
     }
-
+    
     public String getUrl() {
         return url;
     }
-
+    
     public String getSaveDirPath() {
         return saveDirPath;
     }
-
+    
     public String getFileName() {
         return fileName;
     }
-
+    
+    public void setClient(OkHttpClient mClient) {
+        this.mClient = mClient;
+    }
+    
     public void setTotalSize(long totalSize) {
         this.totalSize = totalSize;
     }
-
+    
     public void setCompletedSize(long completedSize) {
         this.completedSize = completedSize;
     }
-
+    
     public void setDownloadStatus(int downloadStatus) {
         this.downloadStatus = downloadStatus;
     }
-
+    
     public int getDownloadStatus() {
         return downloadStatus;
     }
-
+    
     public static class Builder {
         private String id;// task id
         private String url;// file url
         private String saveDirPath;// file save path
         private String fileName; // File name when saving
         private int downloadStatus = DownloadStatus.DOWNLOAD_STATUS_INIT;
-
+        
         private DownloadTaskListener listener;
-
+        
         /**
-         * 作为下载task开始、删除、停止的key值，如果为空则默认是url
+         * 作为下载task开始、删除、停止的key值（not null）
          *
          * @param id
          * @return
@@ -392,7 +404,7 @@ public class DownloadTask implements Runnable {
             this.id = id;
             return this;
         }
-
+        
         /**
          * 下载url（not null）
          *
@@ -403,7 +415,7 @@ public class DownloadTask implements Runnable {
             this.url = url;
             return this;
         }
-
+        
         /**
          * 设置保存地址
          *
@@ -414,7 +426,7 @@ public class DownloadTask implements Runnable {
             this.saveDirPath = saveDirPath;
             return this;
         }
-
+        
         /**
          * 设置下载状态
          *
@@ -425,7 +437,7 @@ public class DownloadTask implements Runnable {
             this.downloadStatus = downloadStatus;
             return this;
         }
-
+        
         /**
          * 设置文件名
          *
@@ -436,7 +448,7 @@ public class DownloadTask implements Runnable {
             this.fileName = fileName;
             return this;
         }
-
+        
         /**
          * 设置下载回调
          *
@@ -447,10 +459,10 @@ public class DownloadTask implements Runnable {
             this.listener = listener;
             return this;
         }
-
-        public DownloadTask build() {
-            return new DownloadTask(this);
+        
+        public DownLoadTask build() {
+            return new DownLoadTask(this);
         }
     }
-
+    
 }
