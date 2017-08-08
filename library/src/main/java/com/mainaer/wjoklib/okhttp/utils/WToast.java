@@ -19,6 +19,7 @@
 package com.mainaer.wjoklib.okhttp.utils;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.widget.Toast;
 
 /**
@@ -30,15 +31,20 @@ public class WToast {
     
     private static void getToast(Context context, CharSequence text, int res, int duration) {
         if (toast == null) {
-            if (res > 0) {
-                toast = Toast.makeText(context.getApplicationContext(), res, duration);
+            if (!TextUtils.isEmpty(text)) {
+                toast = Toast.makeText(context.getApplicationContext(), text, duration);
             }
             else {
-                toast = Toast.makeText(context.getApplicationContext(), text, duration);
+                toast = Toast.makeText(context.getApplicationContext(), res, duration);
             }
         }
         else {
-            toast.setText(text);
+            if (!TextUtils.isEmpty(text)) {
+                toast.setText(text);
+            }
+            else {
+                toast.setText(res);
+            }
         }
         toast.show();
     }
