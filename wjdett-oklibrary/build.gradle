@@ -1,0 +1,82 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion Integer.parseInt(compile_Sdk_Version)
+    buildToolsVersion build_Tools_Version
+
+    defaultConfig {
+        minSdkVersion Integer.parseInt(min_Sdk_Version)
+        targetSdkVersion Integer.parseInt(target_Sdk_Version)
+        versionCode Integer.parseInt(version_Code)
+        versionName version_Name
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility sdk_version
+        targetCompatibility sdk_version
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    // parse json
+    compile 'com.google.code.gson:gson:2.3'
+    // okhttp
+    compile 'com.squareup.okhttp3:okhttp:3.2.0'
+    // okhttp log controller
+    compile 'com.squareup.okhttp3:logging-interceptor:3.0.1'
+    // image load library
+    compile 'com.github.bumptech.glide:glide:3.7.0'
+    // green dao library
+    compile 'org.greenrobot:greendao:2.2.0'
+
+}
+
+
+/** 以下开始是将Android Library上传到jcenter的相关配置**/
+
+ext {
+    // bintray 官网 https://bintray.com/
+
+    bintrayRepo = 'maven' // 必须对应bintray上创建的仓库名称
+    bintrayName = 'wjdett-oklibrary' //bintrayName修改成你上面创建的 package name，建议要与项目中库的名称相同
+
+    libraryName = 'wjdett-oklibrary' // bintray 上创建的package name，建议要与项目中库的名称相同
+
+    publishedGroupId = 'com.wjdett.open' // 自定义groupid  compile引用时的第1部分groupId
+    artifact = 'wjdett-oklibrary' // bintray 上创建的package name  compile引用时的第2部分项目名
+    libraryVersion = '1.0.1' // 版本号  compile引用时的第3部分版本号
+    // compile publishedGroupId:artifact:libraryVersion 中间用冒号分割
+    // 如：compile 'com.wjdett.open:wjdett-oklibrary:1.0.1'
+
+    libraryDescription = 'A wrapper for okhttp on Android' // 项目描述
+
+    //http://blog.csdn.net/u013626215
+    siteUrl = 'https://github.com/wangjiandett/wjokhttp'
+    gitUrl = 'https://github.com/wangjiandett/wjokhttp.git'
+
+    developerId = 'wangjiandett'
+    developerName = 'wangjiandett'
+    developerEmail = 'wangjiandett@sina.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
+
+// 以下2个通用的配置，无需修改
+// 配置项目pom信息
+apply from: 'install.gradle'
+// 配置上传信息
+apply from: 'bintray.gradle'
+
